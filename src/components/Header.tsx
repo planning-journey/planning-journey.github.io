@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Settings, Flag, Sun, Moon, Monitor } from 'lucide-react';
+import { Settings, Flag, Sun, Moon, Monitor, Check } from 'lucide-react'; // Import Check icon
 import { useTheme } from '../contexts/ThemeContext'; // Import useTheme hook
 
 interface HeaderProps {
@@ -36,47 +36,47 @@ const Header = ({ onOpenModal }: HeaderProps) => {
   };
 
   return (
-    <header className="flex items-center justify-between p-4 border-b border-slate-800 dark:border-slate-700 bg-slate-900 dark:bg-gray-900 shadow-md">
-      <h1 className="text-lg font-bold tracking-wider text-slate-200 dark:text-gray-100">PLANNING JOURNEY</h1>
+    <header className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-md">
+      <h1 className="text-lg font-bold tracking-wider text-gray-900 dark:text-gray-100">PLANNING JOURNEY</h1>
       <div className="flex items-center gap-4 relative">
         {/* Settings Button */}
         <button
           ref={settingsButtonRef}
-          className="p-2 rounded-full hover:bg-slate-800 dark:hover:bg-gray-800 transition-all duration-300 relative z-20"
+          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 relative z-20"
           onClick={() => setSettingsMenuOpen(!isSettingsMenuOpen)}
         >
-          <Settings className="w-5 h-5 text-slate-400 dark:text-gray-400" />
+          <Settings className="w-5 h-5 text-gray-500 dark:text-gray-400" />
         </button>
 
         {/* Settings Context Menu */}
         {isSettingsMenuOpen && (
           <div
             ref={settingsMenuRef}
-            className="absolute top-full right-0 mt-2 w-40 bg-slate-800 dark:bg-gray-800 rounded-xl shadow-lg border border-slate-700 dark:border-gray-700 z-30 overflow-hidden"
+            className="absolute top-full right-0 mt-2 w-40 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-30 overflow-hidden"
           >
             <button
-              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-300 dark:text-gray-300 hover:bg-slate-700 dark:hover:bg-gray-700 transition-colors duration-200"
+              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
               onClick={() => handleThemeChange('light')}
             >
               <Sun className="w-4 h-4" />
               <span>Light</span>
-              {theme === 'light' && <span className="ml-auto text-indigo-400">&check;</span>}
+              {theme === 'light' && <Check className="ml-auto w-4 h-4 text-indigo-400" />}
             </button>
             <button
-              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-300 dark:text-gray-300 hover:bg-slate-700 dark:hover:bg-gray-700 transition-colors duration-200"
+              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
               onClick={() => handleThemeChange('dark')}
             >
               <Moon className="w-4 h-4" />
               <span>Dark</span>
-              {theme === 'dark' && <span className="ml-auto text-indigo-400">&check;</span>}
+              {theme === 'dark' && <Check className="ml-auto w-4 h-4 text-indigo-400" />}
             </button>
             <button
-              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-300 dark:text-gray-300 hover:bg-slate-700 dark:hover:bg-gray-700 transition-colors duration-200"
+              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
               onClick={() => handleThemeChange('system')}
             >
               <Monitor className="w-4 h-4" />
               <span>System</span>
-              {theme === 'system' && <span className="ml-auto text-indigo-400">&check;</span>}
+              {theme === 'system' && <Check className="ml-auto w-4 h-4 text-indigo-400" />}
             </button>
           </div>
         )}
