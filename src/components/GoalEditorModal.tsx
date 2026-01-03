@@ -127,41 +127,41 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center"
+      className="fixed inset-0 bg-black bg-opacity-60 dark:bg-opacity-70 z-50 flex items-center justify-center"
       onClick={onClose}
     >
       <div 
-        className="bg-slate-800 rounded-xl shadow-2xl w-full max-w-md m-4 p-6 border border-slate-700"
+        className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md m-4 p-6 border border-gray-200 dark:border-slate-700"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-start">
-          <h2 className="text-2xl font-bold text-white mb-6">신규 목표 추가</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors text-2xl leading-none">&times;</button>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">신규 목표 추가</h2>
+          <button onClick={onClose} className="text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-white transition-colors text-2xl leading-none">&times;</button>
         </div>
         
         <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
           <div className="space-y-6"> {/* Increased spacing */}
             <div>
-              <label htmlFor="goalName" className="block text-sm font-medium text-slate-300 mb-2">목표 이름</label>
+              <label htmlFor="goalName" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">목표 이름</label>
               <input
                 type="text"
                 id="goalName"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="예: 매일 30분 운동하기"
                 required
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">목표 색상</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">목표 색상</label>
               <div className="flex flex-wrap gap-3">
                 {presetColors.map((pc) => (
                   <button
                     key={pc}
                     type="button"
-                    className={`w-8 h-8 rounded-full border-2 ${color === pc ? 'border-white ring-2 ring-indigo-500' : 'border-transparent'}`}
+                    className={`w-8 h-8 rounded-full border-2 ${color === pc ? 'border-indigo-500 ring-2 ring-indigo-500' : 'border-gray-300 dark:border-transparent'}`}
                     style={{ backgroundColor: pc }}
                     onClick={() => setColor(pc)}
                     title={pc}
@@ -171,7 +171,7 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">목표 기간 유형</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">목표 기간 유형</label>
               <div className="flex flex-wrap gap-2">
                 {periodTypeOptions.map((option) => (
                   <button
@@ -182,7 +182,7 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
                       px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-300
                       ${periodType === option.value
                         ? 'bg-indigo-600 text-white shadow-md'
-                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
+                        : 'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-600 border border-gray-300 dark:border-slate-600'
                       }
                     `}
                   >
@@ -196,13 +196,13 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
             <div className="date-inputs space-y-4">
               {(periodType === 'yearly' || periodType === 'monthly') && (
                 <div>
-                  <label htmlFor="goalYear" className="block text-sm font-medium text-slate-300 mb-2">연도</label>
+                  <label htmlFor="goalYear" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">연도</label>
                   <input
                     type="number"
                     id="goalYear"
                     value={year}
                     onChange={(e) => setYear(parseInt(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     placeholder="예: 2024"
                     min="1900"
                     max="2100"
@@ -212,12 +212,12 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
 
               {periodType === 'monthly' && (
                 <div>
-                  <label htmlFor="goalMonth" className="block text-sm font-medium text-slate-300 mb-2">월</label>
+                  <label htmlFor="goalMonth" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">월</label>
                   <select
                     id="goalMonth"
                     value={month}
                     onChange={(e) => setMonth(parseInt(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     {[...Array(12)].map((_, i) => (
                       <option key={i + 1} value={i + 1}>{i + 1}월</option>
@@ -228,7 +228,7 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
 
               {(periodType === 'daily' || periodType === 'weekly' || periodType === 'free') && (
                 <div className="flex flex-col items-center">
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                     {periodType === 'daily' && '목표일 선택'}
                     {periodType === 'weekly' && '주 선택'}
                     {periodType === 'free' && '기간 선택'}
@@ -247,7 +247,7 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
                       showWeekNumbers
                       locale={ko} // Apply Korean locale
                       wrapperClassName="w-full"
-                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   ) : (
                     <DatePicker
@@ -258,7 +258,7 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
                       showWeekNumbers
                       locale={ko} // Apply Korean locale
                       wrapperClassName="w-full"
-                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       dayClassName={(date) => {
                         if (periodType === 'weekly' && selectedCalendarDate) {
                           const start = startOfWeek(selectedCalendarDate, { weekStartsOn: 1 });
@@ -275,28 +275,48 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
                   <style>{`
                     .react-datepicker {
                       font-family: 'Inter', sans-serif;
-                      border: 1px solid #334155; /* slate-700 */
-                      background-color: #1e293b; /* slate-800 */
-                      color: #f8fafc; /* slate-50 */
+                      border: 1px solid #d1d5db; /* gray-300 */
+                      background-color: #ffffff; /* white */
+                      color: #1f2937; /* gray-900 */
                       border-radius: 0.75rem; /* rounded-xl */
                       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
                       padding: 1rem;
                     }
+                    .dark .react-datepicker {
+                      border: 1px solid #334155; /* slate-700 */
+                      background-color: #1e293b; /* slate-800 */
+                      color: #f8fafc; /* slate-50 */
+                    }
                     .react-datepicker__header {
+                      background-color: #ffffff; /* white */
+                      border-bottom: 1px solid #e5e7eb; /* gray-200 */
+                      padding-top: 0.8em;
+                    }
+                    .dark .react-datepicker__header {
                       background-color: #1e293b; /* slate-800 */
                       border-bottom: 1px solid #334155; /* slate-700 */
-                      padding-top: 0.8em;
                     }
                     .react-datepicker__current-month,
                     .react-datepicker__day-name,
                     .react-datepicker__time-name {
+                      color: #1f2937; /* gray-900 */
+                    }
+                    .dark .react-datepicker__current-month,
+                    .dark .react-datepicker__day-name,
+                    .dark .react-datepicker__time-name {
                       color: #f8fafc; /* slate-50 */
                     }
                     .react-datepicker__day {
-                      color: #f8fafc; /* slate-50 */
+                      color: #1f2937; /* gray-900 */
                       transition: background-color 0.3s;
                     }
+                    .dark .react-datepicker__day {
+                      color: #f8fafc; /* slate-50 */
+                    }
                     .react-datepicker__day--outside-month {
+                      color: #9ca3af; /* gray-400 */
+                    }
+                    .dark .react-datepicker__day--outside-month {
                       color: #64748b; /* slate-400 */
                     }
                     .react-datepicker__day--selected,
@@ -316,20 +336,33 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
                       color: white;
                     }
                     .react-datepicker__navigation-icon::before {
+                      border-color: #1f2937; /* gray-900 */
+                    }
+                    .dark .react-datepicker__navigation-icon::before {
                       border-color: #f8fafc; /* slate-50 */
                     }
                     .react-datepicker__day:hover {
-                      background-color: #334155; /* slate-700 */
+                      background-color: #e5e7eb; /* gray-200 */
                       border-radius: 0.5rem;
+                    }
+                    .dark .react-datepicker__day:hover {
+                      background-color: #334155; /* slate-700 */
                     }
                     .react-datepicker__close-icon::after {
                       background-color: #4f46e5; /* indigo-600 */
                     }
                     .react-datepicker__week-number {
+                      color: #4b5563; /* gray-700 */
+                    }
+                    .dark .react-datepicker__week-number {
                       color: #cbd5e1; /* slate-300 */
                     }
                     .react-datepicker__month-read-view--down-arrow,
                     .react-datepicker__year-read-view--down-arrow {
+                      border-color: #1f2937; /* gray-900 */
+                    }
+                    .dark .react-datepicker__month-read-view--down-arrow,
+                    .dark .react-datepicker__year-read-view--down-arrow {
                       border-color: #f8fafc; /* slate-50 */
                     }
                   `}</style>
@@ -338,7 +371,7 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
 
               {/* Display calculated date range */}
               {(startDate && endDate) && (
-                <div className="text-sm text-slate-400 mt-2">
+                <div className="text-sm text-gray-500 dark:text-slate-400 mt-2">
                   <p>시작일: {format(startDate, 'yyyy년 MM월 dd일', { locale: ko })}</p>
                   <p>종료일: {format(endDate, 'yyyy년 MM월 dd일', { locale: ko })}</p>
                 </div>
