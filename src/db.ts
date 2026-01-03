@@ -5,6 +5,8 @@ export interface Goal {
   name: string;
   color: string;
   periodType: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'free';
+  startDate: Date;
+  endDate: Date;
   createdAt: Date;
 }
 
@@ -13,8 +15,8 @@ export class MySubClassedDexie extends Dexie {
 
   constructor() {
     super('planningJourneyDB');
-    this.version(1).stores({
-      goals: '++id, name, createdAt' // Primary key and indexed props
+    this.version(2).stores({
+      goals: '++id, name, startDate, endDate, createdAt' // Primary key and indexed props
     });
   }
 }

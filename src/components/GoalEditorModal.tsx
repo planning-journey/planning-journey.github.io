@@ -1,6 +1,18 @@
-import { useState } from 'react';
-import { db } from '../db';
-import type { Goal } from '../db'; // Import Goal interface
+import { useState, useEffect } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import {
+  format,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+  startOfYear,
+  endOfYear,
+} from 'date-fns';
+import { ko } from 'date-fns/locale'; // Import Korean locale for date-fns
+
+import { db, type Goal } from '../db'; // Import Goal interface
 
 interface GoalEditorModalProps {
   isOpen: boolean;
@@ -33,26 +45,85 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
   const [color, setColor] = useState(presetColors[0]); // Default to first preset color
   const [periodType, setPeriodType] = useState<PeriodTypeOption>('daily');
 
+  // State for date inputs
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(new Date().getMonth() + 1); // 1-indexed
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(new Date());
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    // Calculate startDate and endDate based on periodType and inputs
+    let calculatedStartDate: Date | null = null;
+    let calculatedEndDate: Date | null = null;
+
+    if (periodType === 'yearly') {
+      const yearDate = new Date(year, 0, 1);
+      calculatedStartDate = startOfYear(yearDate);
+      calculatedEndDate = endOfYear(yearDate);
+    } else if (periodType === 'monthly') {
+      const monthDate = new Date(year, month - 1, 1);
+      calculatedStartDate = startOfMonth(monthDate);
+      calculatedEndDate = endOfMonth(monthDate);
+    } else if (periodType === 'weekly' && selectedCalendarDate) {
+      calculatedStartDate = startOfWeek(selectedCalendarDate, { weekStartsOn: 1 }); // Monday
+      calculatedEndDate = endOfWeek(selectedCalendarDate, { weekStartsOn: 1 }); // Sunday
+    } else if (periodType === 'daily' && selectedCalendarDate) {
+      calculatedStartDate = selectedCalendarDate;
+      calculatedEndDate = selectedCalendarDate;
+    } else if (periodType === 'free') {
+      // For 'free', startDate and endDate are set directly by DatePicker
+    }
+
+    setStartDate(calculatedStartDate);
+    setEndDate(calculatedEndDate);
+  }, [periodType, year, month, selectedCalendarDate]); // Removed startDate, endDate from deps to avoid infinite loop
+
+  // Reset selectedCalendarDate when periodType changes to avoid weird state issues
+  useEffect(() => {
+    setSelectedCalendarDate(new Date());
+    if (periodType === 'free') { // For free type, we don't have a single selected calendar date
+        setStartDate(null);
+        setEndDate(null);
+    }
+  }, [periodType]);
+
   if (!isOpen) return null;
 
   const handleSave = async () => {
-    if (!name.trim()) return;
+    if (!name.trim() || !startDate || !endDate) {
+      // Add more specific error handling for missing dates
+      return;
+    }
     try {
       await db.goals.add({
         name,
         color,
         periodType,
+        startDate,
+        endDate,
         createdAt: new Date(),
       } as Goal); // Cast to Goal to ensure type compatibility
-      setName(''); // Reset form
+      
+      // Reset form fields after successful save
+      setName('');
       setColor(presetColors[0]);
       setPeriodType('daily');
+      setSelectedCalendarDate(new Date());
+      setYear(new Date().getFullYear());
+      setMonth(new Date().getMonth() + 1);
+      setStartDate(null);
+      setEndDate(null);
+      
       onClose(); // Close modal on success
     } catch (error) {
       console.error("Failed to save goal: ", error);
       // Optionally, show an error message to the user
     }
   };
+
+
+
 
   return (
     <div 
@@ -119,6 +190,159 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Dynamic Date Inputs based on periodType */}
+            <div className="date-inputs space-y-4">
+              {(periodType === 'yearly' || periodType === 'monthly') && (
+                <div>
+                  <label htmlFor="goalYear" className="block text-sm font-medium text-slate-300 mb-2">연도</label>
+                  <input
+                    type="number"
+                    id="goalYear"
+                    value={year}
+                    onChange={(e) => setYear(parseInt(e.target.value))}
+                    className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="예: 2024"
+                    min="1900"
+                    max="2100"
+                  />
+                </div>
+              )}
+
+              {periodType === 'monthly' && (
+                <div>
+                  <label htmlFor="goalMonth" className="block text-sm font-medium text-slate-300 mb-2">월</label>
+                  <select
+                    id="goalMonth"
+                    value={month}
+                    onChange={(e) => setMonth(parseInt(e.target.value))}
+                    className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    {[...Array(12)].map((_, i) => (
+                      <option key={i + 1} value={i + 1}>{i + 1}월</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {(periodType === 'daily' || periodType === 'weekly' || periodType === 'free') && (
+                <div className="flex flex-col items-center">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    {periodType === 'daily' && '목표일 선택'}
+                    {periodType === 'weekly' && '주 선택'}
+                    {periodType === 'free' && '기간 선택'}
+                  </label>
+                  {periodType === 'free' ? (
+                    <DatePicker
+                      selected={startDate} // For selectsRange, 'selected' prop is usually the start date
+                      onChange={(dates: [Date | null, Date | null]) => {
+                        setStartDate(dates[0]);
+                        setEndDate(dates[1]);
+                      }}
+                      startDate={startDate}
+                      endDate={endDate}
+                      selectsRange={true}
+                      inline
+                      showWeekNumbers
+                      locale={ko} // Apply Korean locale
+                      wrapperClassName="w-full"
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  ) : (
+                    <DatePicker
+                      selected={selectedCalendarDate}
+                      onChange={(date: Date | null) => setSelectedCalendarDate(date)}
+                      selectsRange={false} // Explicitly false for single date selection
+                      inline
+                      showWeekNumbers
+                      locale={ko} // Apply Korean locale
+                      wrapperClassName="w-full"
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      dayClassName={(date) => {
+                        if (periodType === 'weekly' && selectedCalendarDate) {
+                          const start = startOfWeek(selectedCalendarDate, { weekStartsOn: 1 });
+                          const end = endOfWeek(selectedCalendarDate, { weekStartsOn: 1 });
+                          if (date >= start && date <= end) {
+                            return 'react-datepicker__day--selected-range';
+                          }
+                        }
+                        return ''; // Return empty string instead of undefined
+                      }}
+                    />
+                  )}
+                  {/* Custom styling for react-datepicker to match theme */}
+                  <style>{`
+                    .react-datepicker {
+                      font-family: 'Inter', sans-serif;
+                      border: 1px solid #334155; /* slate-700 */
+                      background-color: #1e293b; /* slate-800 */
+                      color: #f8fafc; /* slate-50 */
+                      border-radius: 0.75rem; /* rounded-xl */
+                      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+                      padding: 1rem;
+                    }
+                    .react-datepicker__header {
+                      background-color: #1e293b; /* slate-800 */
+                      border-bottom: 1px solid #334155; /* slate-700 */
+                      padding-top: 0.8em;
+                    }
+                    .react-datepicker__current-month,
+                    .react-datepicker__day-name,
+                    .react-datepicker__time-name {
+                      color: #f8fafc; /* slate-50 */
+                    }
+                    .react-datepicker__day {
+                      color: #f8fafc; /* slate-50 */
+                      transition: background-color 0.3s;
+                    }
+                    .react-datepicker__day--outside-month {
+                      color: #64748b; /* slate-400 */
+                    }
+                    .react-datepicker__day--selected,
+                    .react-datepicker__day--in-selecting-range,
+                    .react-datepicker__day--in-range {
+                      background-color: #4f46e5; /* indigo-600 */
+                      color: white;
+                      border-radius: 0.5rem;
+                    }
+                     .react-datepicker__day--keyboard-selected {
+                      background-color: #6366f1; /* indigo-500 */
+                      color: white;
+                      border-radius: 0.5rem;
+                    }
+                    .react-datepicker__day--selected-range {
+                      background-color: #4f46e5; /* indigo-600 */
+                      color: white;
+                    }
+                    .react-datepicker__navigation-icon::before {
+                      border-color: #f8fafc; /* slate-50 */
+                    }
+                    .react-datepicker__day:hover {
+                      background-color: #334155; /* slate-700 */
+                      border-radius: 0.5rem;
+                    }
+                    .react-datepicker__close-icon::after {
+                      background-color: #4f46e5; /* indigo-600 */
+                    }
+                    .react-datepicker__week-number {
+                      color: #cbd5e1; /* slate-300 */
+                    }
+                    .react-datepicker__month-read-view--down-arrow,
+                    .react-datepicker__year-read-view--down-arrow {
+                      border-color: #f8fafc; /* slate-50 */
+                    }
+                  `}</style>
+                </div>
+              )}
+
+              {/* Display calculated date range */}
+              {(startDate && endDate) && (
+                <div className="text-sm text-slate-400 mt-2">
+                  <p>시작일: {format(startDate, 'yyyy년 MM월 dd일', { locale: ko })}</p>
+                  <p>종료일: {format(endDate, 'yyyy년 MM월 dd일', { locale: ko })}</p>
+                </div>
+              )}
             </div>
           </div>
           
