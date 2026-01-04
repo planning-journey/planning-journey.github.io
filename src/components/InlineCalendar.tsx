@@ -1,174 +1,86 @@
 // src/components/InlineCalendar.tsx
-import React, { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useLayoutEffect, useMemo } from 'react';
 
 interface InlineCalendarProps {
   onDateSelect: (date: Date) => void;
 }
 
-// Helper function to get the number of days in a month
+const DAY_WIDTH = 56; // Corresponds to Tailwind 'w-14' (14 * 4 = 56px)
+const BUFFER_DAYS = 30; // Number of extra days to render on each side of the viewport
+
+// Helper function to get the number of days in a month - not directly used in this virtualized version, but good to keep
 const getDaysInMonth = (year: number, month: number): number => {
   return new Date(year, month + 1, 0).getDate();
 };
 
-// Helper function to generate dates for a specific month (without padding from prev/next months)
-const generateDatesForMonth = (year: number, month: number): Date[] => {
-  const datesInMonth: Date[] = [];
-  const days = getDaysInMonth(year, month);
-  for (let i = 1; i <= days; i++) {
-    datesInMonth.push(new Date(year, month, i));
-  }
-  return datesInMonth;
-};
-
-// Helper to generate dates for a full week row (Monday to Sunday) - currently not used in this continuous stream calendar
-const generateWeekRowDates = (date: Date): Date[] => {
-  const weekDates: Date[] = [];
-  const dayOfWeek = date.getDay(); // 0 for Sunday, 1 for Monday
-  const startDate = new Date(date);
-  startDate.setDate(date.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1)); // Set to Monday of the week
-
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(startDate);
-    d.setDate(startDate.getDate() + i);
-    weekDates.push(d);
-  }
-  return weekDates;
-};
-
-
 const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null); // Ref for the virtualized content container
+
   const [currentMonthYear, setCurrentMonthYear] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   
-  // dates will store all currently rendered dates
-  const [dates, setDates] = useState<Date[]>([]);
+  // Conceptual total range of dates
+  const START_YEAR = 1900;
+  const END_YEAR = 2100;
+  const startVirtualDate = useMemo(() => new Date(START_YEAR, 0, 1), []);
+  const endVirtualDate = useMemo(() => new Date(END_YEAR, 11, 31), []);
   
-  // These will track the first and last *full month* (or chunk) generated
-  const [firstRenderedMonth, setFirstRenderedMonth] = useState<Date | null>(null);
-  const [lastRenderedMonth, setLastRenderedMonth] = useState<Date | null>(null);
+  // Calculate total number of days in the virtual range
+  const totalDays = useMemo(() => {
+    const diffTime = Math.abs(endVirtualDate.getTime() - startVirtualDate.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) +1; // +1 to include both start and end days
+  }, [startVirtualDate, endVirtualDate]);
 
-  // Function to load a new month (either previous or next)
-  const loadMonth = useCallback((direction: 'prev' | 'next', currentRefDate: Date) => {
-    let year = currentRefDate.getFullYear();
-    let month = currentRefDate.getMonth();
+  // Total virtual scroll width
+  const totalScrollWidth = useMemo(() => totalDays * DAY_WIDTH, [totalDays]);
 
-    if (direction === 'prev') {
-      month--;
-      if (month < 0) {
-        month = 11;
-        year--;
-      }
-    } else { // 'next'
-      month++;
-      if (month > 11) {
-        month = 0;
-        year++;
-      }
+  // State to hold dates currently visible + buffer
+  const [renderedDates, setRenderedDates] = useState<Date[]>([]);
+  const [transformOffset, setTransformOffset] = useState(0); // For positioning the rendered block
+
+  // Calculate visible dates based on scroll position
+  const calculateVisibleDates = useCallback(() => {
+    if (!scrollRef.current) return;
+
+    const { scrollLeft, clientWidth } = scrollRef.current;
+
+    // Calculate the start and end index of dates that *could* be visible
+    let firstVisibleIndex = Math.floor(scrollLeft / DAY_WIDTH);
+    let lastVisibleIndex = Math.ceil((scrollLeft + clientWidth) / DAY_WIDTH);
+
+    // Apply buffer
+    firstVisibleIndex = Math.max(0, firstVisibleIndex - BUFFER_DAYS);
+    lastVisibleIndex = Math.min(totalDays - 1, lastVisibleIndex + BUFFER_DAYS);
+
+    const newRenderedDates: Date[] = [];
+    for (let i = firstVisibleIndex; i <= lastVisibleIndex; i++) {
+      const date = new Date(startVirtualDate);
+      date.setDate(startVirtualDate.getDate() + i); // Add 'i' days to the startVirtualDate
+      newRenderedDates.push(date);
     }
-    
-    const newMonthDates = generateDatesForMonth(year, month);
-    return { dates: newMonthDates, monthRef: new Date(year, month, 1) };
-  }, []);
+    setRenderedDates(newRenderedDates);
+    setTransformOffset(firstVisibleIndex * DAY_WIDTH);
 
-
-  // Initial dates generation: Load a few months around today
-  useEffect(() => {
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth();
-
-    const initialDates: Date[] = [];
-    
-    // Load 2 months before, current month, and 2 months after
-    for (let i = -2; i <= 2; i++) {
-      initialDates.push(...generateDatesForMonth(currentYear, currentMonth + i));
-    }
-    
-    setDates(initialDates);
-    setFirstRenderedMonth(new Date(currentYear, currentMonth - 2, 1));
-    setLastRenderedMonth(new Date(currentYear, currentMonth + 2, 1));
-    
-    setCurrentMonthYear(
-      new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long' }).format(today)
-    );
-  }, [generateDatesForMonth]);
-
-
-  // Scroll to a specific date (e.g., today or selected date)
-  const scrollToDate = useCallback((date: Date, behavior: ScrollBehavior = 'smooth') => {
-    if (scrollRef.current && dates.length > 0) {
-      const targetDateString = date.toDateString();
-      // Find the index of the first occurrence of the target date
-      const targetIndex = dates.findIndex(d => d.toDateString() === targetDateString);
-
-      if (targetIndex !== -1) {
-        // Approximate width of a day. This is critical for scroll calculations.
-        // Assume all days have roughly the same width in the flex container.
-        const dayElement = scrollRef.current.children[targetIndex] as HTMLElement;
-        const dayWidth = dayElement ? dayElement.offsetWidth : 56; // 56px (w-14) is default in Tailwind
-
-        const scrollPosition = targetIndex * dayWidth - (scrollRef.current.clientWidth / 2) + (dayWidth / 2);
-        
-        scrollRef.current.scrollTo({
-          left: scrollPosition,
-          behavior: behavior
-        });
-      }
-    }
-  }, [dates]);
-
-  // Initial scroll to today's date after initial render
-  useLayoutEffect(() => {
-    if (dates.length > 0) {
-      scrollToDate(new Date(), 'auto'); // Scroll instantly on initial load
-    }
-  }, [dates, scrollToDate]); // Re-run if dates change significantly (e.g., initial load)
-
-
-  // Infinite scroll logic
-  const handleScroll = useCallback(() => {
-    if (!scrollRef.current || dates.length === 0 || !firstRenderedMonth || !lastRenderedMonth) return;
-
-    const { scrollLeft, clientWidth, scrollWidth } = scrollRef.current;
-    
-    // Determine current month/year in viewport center
-    const dayWidth = scrollWidth / dates.length; // Approximate width of a day
+    // Update current month/year display from the center of the viewport
     const centerScrollPosition = scrollLeft + clientWidth / 2;
-    const centerDateIndex = Math.floor(centerScrollPosition / dayWidth);
-    
-    if (dates[centerDateIndex]) {
-      setCurrentMonthYear(
-        new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long' }).format(dates[centerDateIndex])
-      );
-    }
+    const centerDateGlobalIndex = Math.floor(centerScrollPosition / DAY_WIDTH);
+    const centerDate = new Date(startVirtualDate);
+    centerDate.setDate(startVirtualDate.getDate() + centerDateGlobalIndex);
 
-    const scrollThreshold = clientWidth * 0.2; // Load new months when 20% from edge
+    setCurrentMonthYear(
+      new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long' }).format(centerDate)
+    );
 
-    // Load previous month
-    if (scrollLeft < scrollThreshold) {
-      const { dates: newDates, monthRef } = loadMonth('prev', firstRenderedMonth);
-      setDates(prevDates => [...newDates, ...prevDates]);
-      setFirstRenderedMonth(monthRef);
+  }, [startVirtualDate, totalDays]);
 
-      // Adjust scroll position to prevent jump
-      const prevScrollWidth = scrollRef.current.scrollWidth;
-      requestAnimationFrame(() => { // Use requestAnimationFrame for DOM updates
-        if (scrollRef.current) {
-          scrollRef.current.scrollLeft += (scrollRef.current.scrollWidth - prevScrollWidth);
-        }
-      });
-    } 
-    // Load next month
-    else if (scrollLeft + clientWidth > scrollWidth - scrollThreshold) {
-      const { dates: newDates, monthRef } = loadMonth('next', lastRenderedMonth);
-      setDates(prevDates => [...prevDates, ...newDates]);
-      setLastRenderedMonth(monthRef);
-    }
-  }, [dates, loadMonth, firstRenderedMonth, lastRenderedMonth]); // generateDatesForMonth was removed, loadMonth covers it
+  // Handle scroll event
+  const handleScroll = useCallback(() => {
+    calculateVisibleDates();
+  }, [calculateVisibleDates]);
 
 
-  // Attach/detach scroll listener
+  // Effect to attach/detach scroll listener
   useEffect(() => {
     const currentScrollRef = scrollRef.current;
     if (currentScrollRef) {
@@ -178,6 +90,38 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect }) => {
       };
     }
   }, [handleScroll]);
+
+  // Initial calculation of visible dates on mount
+  useEffect(() => {
+    calculateVisibleDates();
+  }, [calculateVisibleDates]);
+
+
+  // Scroll to a specific date (e.g., today or selected date)
+  const scrollToDate = useCallback((date: Date, behavior: ScrollBehavior = 'smooth') => {
+    if (scrollRef.current) {
+      const targetTime = date.getTime();
+      const startTime = startVirtualDate.getTime();
+      const diffDays = Math.round(Math.abs(targetTime - startTime) / (1000 * 60 * 60 * 24));
+      
+      const scrollPosition = diffDays * DAY_WIDTH - (scrollRef.current.clientWidth / 2) + (DAY_WIDTH / 2);
+      
+      scrollRef.current.scrollTo({
+        left: scrollPosition,
+        behavior: behavior
+      });
+      // After scrolling, recalculate visible dates
+      requestAnimationFrame(() => calculateVisibleDates());
+    }
+  }, [startVirtualDate, calculateVisibleDates]);
+
+
+  // Initial scroll to today's date after initial render
+  useLayoutEffect(() => {
+    if (scrollRef.current && totalDays > 0) {
+      scrollToDate(new Date(), 'auto'); // Scroll instantly on initial load
+    }
+  }, [totalDays, scrollToDate]);
 
 
   const handleDateClick = (date: Date) => {
@@ -199,22 +143,37 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect }) => {
       </div>
       <div
         ref={scrollRef}
-        className="flex overflow-x-auto custom-scrollbar-hide pb-2 px-2 snap-x snap-mandatory"
+        className="flex overflow-x-auto custom-scrollbar-hide pb-2 px-2 relative" // Removed snap-x, snap-mandatory
+        style={{ height: '70px' }} // Fixed height for calendar
       >
-        {dates.map((date) => (
-          <div
-            key={date.toISOString()} // Use date.toISOString() alone as key since dates are now unique
-            className={`flex-none w-14 text-center cursor-pointer snap-center
-              ${isSameDay(date, new Date()) ? 'font-bold text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300'}
-              ${isSameDay(date, selectedDate) ? 'bg-indigo-100 dark:bg-indigo-900 rounded-lg' : ''}
-              hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 p-1 mx-1
-            `}
-            onClick={() => handleDateClick(date)}
-          >
-            <div className="text-xs">{new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(date)}</div>
-            <div className="text-lg leading-none">{date.getDate()}</div>
-          </div>
-        ))}
+        <div 
+          ref={contentRef}
+          style={{ 
+            width: totalScrollWidth, // Virtual width for the entire scrollable area
+            transform: `translateX(${transformOffset}px)`, // Position the visible block
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            height: '100%',
+            display: 'flex',
+            willChange: 'transform' // Optimize for transform changes
+          }}
+        >
+          {renderedDates.map((date) => (
+            <div
+              key={date.toISOString()}
+              className={`flex-none w-14 text-center cursor-pointer
+                ${isSameDay(date, new Date()) ? 'font-bold text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300'}
+                ${isSameDay(date, selectedDate) ? 'bg-indigo-100 dark:bg-indigo-900 rounded-lg' : ''}
+                hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 p-1 mx-1
+              `}
+              onClick={() => handleDateClick(date)}
+            >
+              <div className="text-xs">{new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(date)}</div>
+              <div className="text-lg leading-none">{date.getDate()}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
