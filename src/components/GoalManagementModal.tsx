@@ -64,7 +64,7 @@ const GoalManagementModal = ({ isOpen, onClose, onAddNewGoal, onEditGoal, onDele
       onClick={onClose}
     >
       <div 
-        className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-lg m-4 p-6 border border-gray-200 dark:border-slate-700"
+        className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-lg m-4 p-6 border border-slate-200/50 dark:border-slate-700 transition-all duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-start mb-6">
@@ -74,36 +74,36 @@ const GoalManagementModal = ({ isOpen, onClose, onAddNewGoal, onEditGoal, onDele
         
         <div className="h-64 overflow-y-auto pr-2 mb-6 custom-scrollbar">
             {goals && goals.length > 0 ? (
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col">
                     {goals.map((goal) => (
                         <div 
                           key={goal.id} 
-                          className="flex items-center p-4 bg-gray-100 dark:bg-slate-700 rounded-lg text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-600 shadow-sm"
+                          className="flex items-center py-2 px-3 border-b border-slate-200/50 dark:border-slate-700 last:border-b-0"
                         >
                           <div className="flex items-center flex-grow">
                             {/* Color Circle */}
-                            <div className="w-4 h-4 rounded-full mr-3" style={{ backgroundColor: goal.color }}></div>
-                            <div>
-                              <span className="font-medium text-gray-900 dark:text-white">{goal.name}</span>
+                            <div className="w-4 h-4 rounded-full mr-3 shrink-0" style={{ backgroundColor: goal.color }}></div>
+                            <div className="overflow-hidden"> {/* Added overflow-hidden to prevent text overflow */}
+                              <span className="font-semibold text-gray-900 dark:text-white truncate block">{goal.name}</span> {/* Added truncate block */}
                               {/* Period Display */}
                               <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">{formatPeriod(goal)}</p>
                             </div>
                           </div>
                           
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 pl-4"> {/* Added pl-4 for spacing */}
                             {/* Pencil Icon for Edit */}
                             <button 
                               onClick={() => onEditGoal(goal)}
-                              className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                              className="p-2 rounded-full text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                             >
-                              <Pencil className="w-4 h-4 text-gray-500 dark:text-slate-400" />
+                              <Pencil className="w-4 h-4" />
                             </button>
                             {/* X Icon for Delete */}
                             <button 
                               onClick={() => goal.id && onDeleteGoal(goal.id)} // Pass ID for deletion
-                              className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                              className="p-2 rounded-full text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-500/50"
                             >
-                              <X className="w-4 h-4 text-gray-500 dark:text-slate-400" />
+                              <X className="w-4 h-4" />
                             </button>
                           </div>
                         </div>
