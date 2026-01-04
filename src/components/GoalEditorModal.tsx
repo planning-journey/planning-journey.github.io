@@ -6,6 +6,7 @@ import Calendar from './Calendar'; // Import the custom Calendar component
 interface GoalEditorModalProps {
   isOpen: boolean;
   onClose: () => void;
+  goalToEdit?: Goal | null; // New prop for editing
 }
 
 const presetColors = [
@@ -29,7 +30,7 @@ const periodTypeOptions = [
   { value: 'free', label: '자유' },
 ];
 
-const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
+const GoalEditorModal = ({ isOpen, onClose, goalToEdit }: GoalEditorModalProps) => {
   const [name, setName] = useState('');
   const [color, setColor] = useState(presetColors[0]); // Default to first preset color
   const [periodType, setPeriodType] = useState<PeriodTypeOption>('daily');
@@ -68,6 +69,35 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
   };
 
 
+  // Effect to populate form when goalToEdit changes
+  useEffect(() => {
+    if (goalToEdit) {
+      setName(goalToEdit.name);
+      setColor(goalToEdit.color);
+      setPeriodType(goalToEdit.periodType);
+      
+      const editStartDate = new Date(goalToEdit.startDate);
+      const editEndDate = new Date(goalToEdit.endDate);
+
+      setYear(editStartDate.getFullYear());
+      setMonth(editStartDate.getMonth() + 1);
+      setSelectedCalendarDate(editStartDate); // For daily/weekly
+      setStartDate(editStartDate);
+      setEndDate(editEndDate);
+    } else {
+      // Reset form if no goalToEdit (for new goal)
+      setName('');
+      setColor(presetColors[0]);
+      setPeriodType('daily');
+      setSelectedCalendarDate(new Date());
+      setYear(new Date().getFullYear());
+      setMonth(new Date().getMonth() + 1);
+      setStartDate(null);
+      setEndDate(null);
+    }
+  }, [goalToEdit]);
+
+
   useEffect(() => {
     let calculatedStartDate: Date | null = null;
     let calculatedEndDate: Date | null = null;
@@ -96,12 +126,16 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
 
   // Reset selectedCalendarDate when periodType changes to avoid weird state issues
   useEffect(() => {
-    setSelectedCalendarDate(new Date());
-    if (periodType === 'free') { 
-        setStartDate(null);
-        setEndDate(null);
+    // Only reset if not currently editing, to prevent overwriting existing goal's dates
+    if (!goalToEdit) {
+      setSelectedCalendarDate(new Date());
+      if (periodType === 'free') { 
+          setStartDate(null);
+          setEndDate(null);
+      }
     }
-  }, [periodType]);
+  }, [periodType, goalToEdit]);
+
 
   if (!isOpen) return null;
 
@@ -109,15 +143,23 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
     if (!name.trim() || !startDate || !endDate) {
       return;
     }
+
+    const goalData: Goal = {
+      name,
+      color,
+      periodType,
+      startDate,
+      endDate,
+      createdAt: goalToEdit ? goalToEdit.createdAt : new Date(), // Keep original createdAt for edits
+      ...(goalToEdit && { id: goalToEdit.id }) // Include id for updates
+    };
+    
     try {
-      await db.goals.add({
-        name,
-        color,
-        periodType,
-        startDate,
-        endDate,
-        createdAt: new Date(),
-      } as Goal); 
+      if (goalToEdit) {
+        await db.goals.put(goalData); // Update existing goal
+      } else {
+        await db.goals.add(goalData); // Add new goal
+      }
       
       // Reset form fields after successful save
       setName('');
@@ -155,7 +197,7 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-start">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">신규 목표 추가</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{goalToEdit ? '목표 수정' : '신규 목표 추가'}</h2>
           <button onClick={onClose} className="text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-white transition-colors text-2xl leading-none">&times;</button>
         </div>
         
@@ -223,7 +265,7 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
                     value={year}
                     onChange={(e) => setYear(parseInt(e.target.value))}
                     className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    placeholder="예: 2024"
+                    placeholder="예: 매일 30분 운동하기"
                     min="1900"
                     max="2100"
                   />
@@ -276,7 +318,7 @@ const GoalEditorModal = ({ isOpen, onClose }: GoalEditorModalProps) => {
           
           <div className="flex justify-end mt-8">
             <button type="submit" className="w-full px-5 py-3 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-500 transition-all duration-300 shadow-md">
-              목표 생성
+              {goalToEdit ? '목표 수정' : '목표 생성'}
             </button>
           </div>
         </form>

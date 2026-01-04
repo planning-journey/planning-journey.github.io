@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type Goal } from '../db';
-import { Flag, Pencil, X } from 'lucide-react'; // Import Pencil and X icons
+import { Pencil, X } from 'lucide-react'; // Import Pencil and X icons
 
 interface GoalManagementModalProps {
   isOpen: boolean;

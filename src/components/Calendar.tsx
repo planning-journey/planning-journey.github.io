@@ -81,14 +81,6 @@ const Calendar = ({
     days.push(i);
   }
   
-  // Calculate selected week range if selectionType is 'week'
-  let selectedWeekStart: Date | null = null;
-  let selectedWeekEnd: Date | null = null;
-  if (selectionType === 'week' && selectedDate) {
-    selectedWeekStart = getStartOfWeek(selectedDate, 1); // Monday
-    selectedWeekEnd = getEndOfWeek(selectedDate, 1); // Sunday
-  }
-
   // Handle day click
   const handleDayClick = (dayNum: number | null) => {
     if (dayNum === null) return;
@@ -149,8 +141,10 @@ const Calendar = ({
             if (selectionType === 'day' && selectedDate) {
               isSelected = isSameDay(date, selectedDate);
             } else if (selectionType === 'week' && selectedDate) {
-              isInRange = isSameWeek(date, selectedDate, 1);
-              isSelected = isSameDay(date, selectedDate);
+              const weekStart = getStartOfWeek(selectedDate, 1);
+              const weekEnd = getEndOfWeek(selectedDate, 1);
+              isInRange = isBetween(date, weekStart, weekEnd);
+              isSelected = isSameDay(date, selectedDate); // Highlight the clicked day within the week
             } else if (selectionType === 'range' && startDate && endDate) {
               isInRange = isBetween(date, startDate, endDate);
               isSelected = isSameDay(date, startDate) || isSameDay(date, endDate);
