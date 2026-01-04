@@ -5,7 +5,7 @@ interface InlineCalendarProps {
   onDateSelect: (date: Date) => void;
 }
 
-const DAY_WIDTH = 56; // Corresponds to Tailwind 'w-14' (14 * 4 = 56px)
+const DAY_WIDTH = 64; // Corresponds to Tailwind 'w-14' (56px) + 'mx-1' (2 * 4px) = 64px
 const BUFFER_DAYS = 30; // Number of extra days to render on each side of the viewport
 
 // Helper function to get the number of days in a month - not directly used in this virtualized version, but good to keep
