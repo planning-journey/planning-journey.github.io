@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, useCallback, useLayoutEffect, useMe
 
 interface InlineCalendarProps {
   onDateSelect: (date: Date) => void;
+  onMonthYearChange: (monthYear: string) => void;
 }
 
 const DAY_WIDTH = 64; // Corresponds to Tailwind 'w-14' (56px) + 'mx-1' (2 * 4px) = 64px
@@ -13,19 +14,18 @@ const getDaysInMonth = (year: number, month: number): number => {
   return new Date(year, month + 1, 0).getDate();
 };
 
-const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect }) => {
+const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onMonthYearChange }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null); // Ref for the virtualized content container
 
-  const [currentMonthYear, setCurrentMonthYear] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  
+
   // Conceptual total range of dates
   const START_YEAR = 1900;
   const END_YEAR = 2100;
   const startVirtualDate = useMemo(() => new Date(START_YEAR, 0, 1), []);
   const endVirtualDate = useMemo(() => new Date(END_YEAR, 11, 31), []);
-  
+
   // Calculate total number of days in the virtual range
   const totalDays = useMemo(() => {
     const diffTime = Math.abs(endVirtualDate.getTime() - startVirtualDate.getTime());
@@ -68,7 +68,7 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect }) => {
     const centerDate = new Date(startVirtualDate);
     centerDate.setDate(startVirtualDate.getDate() + centerDateGlobalIndex);
 
-    setCurrentMonthYear(
+    onMonthYearChange(
       new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long' }).format(centerDate)
     );
 
@@ -103,9 +103,9 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect }) => {
       const targetTime = date.getTime();
       const startTime = startVirtualDate.getTime();
       const diffDays = Math.round(Math.abs(targetTime - startTime) / (1000 * 60 * 60 * 24));
-      
+
       const scrollPosition = diffDays * DAY_WIDTH - (scrollRef.current.clientWidth / 2) + (DAY_WIDTH / 2);
-      
+
       scrollRef.current.scrollTo({
         left: scrollPosition,
         behavior: behavior
@@ -138,17 +138,14 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect }) => {
 
   return (
     <div className="w-full bg-white dark:bg-gray-900 border-b border-slate-200/50 dark:border-slate-700">
-      <div className="py-2 px-4 text-center text-sm font-semibold text-gray-800 dark:text-gray-100">
-        {currentMonthYear}
-      </div>
       <div
         ref={scrollRef}
         className="flex overflow-x-auto custom-scrollbar-hide pb-2 px-2 relative" // Removed snap-x, snap-mandatory
         style={{ height: '70px' }} // Fixed height for calendar
       >
-        <div 
+        <div
           ref={contentRef}
-          style={{ 
+          style={{
             width: totalScrollWidth, // Virtual width for the entire scrollable area
             transform: `translateX(${transformOffset}px)`, // Position the visible block
             position: 'absolute',
