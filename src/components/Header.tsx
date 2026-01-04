@@ -41,8 +41,8 @@ const Header = ({ onOpenModal, onDateSelect, currentMonthYear, onMonthYearChange
 
   return (
     <header className="flex flex-col border-b border-slate-200/50 dark:border-slate-700 bg-white dark:bg-gray-900">
-      <div className="flex items-center justify-between mb-1"> {/* Added mb-1 for spacing */}
-        <div className="flex flex-col p-4"> {/* Changed to flex-col to stack title and month/year */}
+      <div className="flex items-center justify-between p-4"> {/* This is the main horizontal flex container */}
+        <div className="flex flex-col"> {/* New wrapper for title and month/year */}
           <h1 className="text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400">PLANNING JOURNEY</h1> {/* Smaller and fainter */}
           <div className="text-xl font-bold text-gray-900 dark:text-white"> {/* Month/year display */}
             {currentMonthYear}
