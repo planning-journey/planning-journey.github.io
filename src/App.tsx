@@ -14,11 +14,16 @@ function App() {
   const [goalToEdit, setGoalToEdit] = useState<Goal | null>(null); // New: State for goal being edited
   const [goalToDeleteId, setGoalToDeleteId] = useState<number | null>(null); // New: State for goal ID to delete
   const [selectedDate, setSelectedDate] = useState<Date>(new Date()); // New: State for selected date from calendar
+  const [currentMonthYear, setCurrentMonthYear] = useState(''); // New: State for current month/year from calendar
 
   const handleDateSelect = (date: Date) => { // New: Handler for date selection
     setSelectedDate(date);
     console.log('Selected date:', date.toDateString()); // For debugging, can be removed later
     // Here you would typically filter main content based on the selected date
+  };
+
+  const handleMonthYearChange = (monthYear: string) => { // New: Handler for month/year change from calendar
+    setCurrentMonthYear(monthYear);
   };
 
   const openGoalManagementModal = () => setGoalManagementModalOpen(true);
@@ -70,7 +75,12 @@ function App() {
   return (
     <ThemeProvider>
       <div className="font-sans text-gray-900 dark:text-white min-h-screen bg-gray-100 dark:bg-slate-900">
-        <Header onOpenModal={openGoalManagementModal} onDateSelect={handleDateSelect} />
+        <Header 
+          onOpenModal={openGoalManagementModal} 
+          onDateSelect={handleDateSelect} 
+          currentMonthYear={currentMonthYear} // Pass new state
+          onMonthYearChange={handleMonthYearChange} // Pass new handler
+        />
         <main className="p-8">
           <h1 className="text-4xl font-bold text-gray-800 dark:text-white">Welcome to Planning Journey</h1>
           <p className="text-gray-600 dark:text-slate-400 mt-2">Your journey starts here. Define your goals and track your progress.</p>

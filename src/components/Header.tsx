@@ -5,10 +5,12 @@ import InlineCalendar from './InlineCalendar'; // Import InlineCalendar
 
 interface HeaderProps {
   onOpenModal: () => void;
-  onDateSelect: (date: Date) => void; // New prop for date selection
+  onDateSelect: (date: Date) => void;
+  currentMonthYear: string; // New prop
+  onMonthYearChange: (monthYear: string) => void; // Prop to pass to InlineCalendar
 }
 
-const Header = ({ onOpenModal, onDateSelect }: HeaderProps) => { // Destructure new prop
+const Header = ({ onOpenModal, onDateSelect, currentMonthYear, onMonthYearChange }: HeaderProps) => { // Destructure new props
   const [isSettingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme(); // Use the theme context
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
@@ -38,9 +40,14 @@ const Header = ({ onOpenModal, onDateSelect }: HeaderProps) => { // Destructure 
   };
 
   return (
-    <header className="flex flex-col border-b border-slate-200/50 dark:border-slate-700 bg-white dark:bg-gray-900"> {/* Changed to flex-col */}
-      <div className="flex items-center justify-between p-4"> {/* Existing content in a new div */}
-        <h1 className="text-lg font-bold tracking-wider text-gray-900 dark:text-gray-100">PLANNING JOURNEY</h1>
+    <header className="flex flex-col border-b border-slate-200/50 dark:border-slate-700 bg-white dark:bg-gray-900">
+      <div className="flex items-center justify-between mb-1"> {/* Added mb-1 for spacing */}
+        <div className="flex flex-col p-4"> {/* Changed to flex-col to stack title and month/year */}
+          <h1 className="text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400">PLANNING JOURNEY</h1> {/* Smaller and fainter */}
+          <div className="text-xl font-bold text-gray-900 dark:text-white"> {/* Month/year display */}
+            {currentMonthYear}
+          </div>
+        </div>
         <div className="flex items-center gap-4 relative">
           {/* Settings Button */}
           <button
@@ -94,7 +101,7 @@ const Header = ({ onOpenModal, onDateSelect }: HeaderProps) => { // Destructure 
           </button>
         </div>
       </div>
-      <InlineCalendar onDateSelect={onDateSelect} /> {/* New: Inline Calendar */}
+      <InlineCalendar onDateSelect={onDateSelect} onMonthYearChange={onMonthYearChange} /> {/* Pass new prop */}
     </header>
   );
 };
