@@ -85,6 +85,7 @@ function App() {
           currentMonthYear={currentMonthYear} // Pass new state
           onMonthYearChange={handleMonthYearChange} // Pass new handler
           onSelectToday={handleSelectToday} // Pass new handler
+          selectedDate={selectedDate} // Pass selectedDate state
         />
         <main className="p-8">
           <h1 className="text-4xl font-bold text-gray-800 dark:text-white">Welcome to Planning Journey</h1>

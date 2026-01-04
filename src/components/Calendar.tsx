@@ -109,13 +109,13 @@ const Calendar = ({
     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 w-full max-w-sm border border-gray-200 dark:border-slate-700">
       {/* Calendar Header */}
       <div className="flex items-center justify-between mb-4">
-        <button onClick={goToPreviousMonth} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
+        <button type="button" onClick={goToPreviousMonth} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
           <ChevronLeft className="w-5 h-5 text-gray-700 dark:text-slate-300" />
         </button>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           {year}년 {month + 1}월
         </h3>
-        <button onClick={goToNextMonth} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
+        <button type="button" onClick={goToNextMonth} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
           <ChevronRight className="w-5 h-5 text-gray-700 dark:text-slate-300" />
         </button>
       </div>
@@ -157,19 +157,44 @@ const Calendar = ({
             }
           }
 
-          const dayClasses = `
-            relative flex items-center justify-center h-8 w-8 rounded-full text-sm transition-all duration-200
-            ${isCurrentMonth ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-slate-600'}
-            ${isToday ? 'border border-indigo-500' : ''}
-            ${isSelected || isRangeStart || isRangeEnd ? 'bg-indigo-600 text-white' : (isInRange ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200' : 'hover:bg-gray-100 dark:hover:bg-slate-700')}
-          `;
+          const dayClasses: string[] = [];
+
+          dayClasses.push('relative flex items-center justify-center h-8 w-8 text-sm transition-all duration-200');
+
+          if (isCurrentMonth) {
+            dayClasses.push('text-gray-900 dark:text-white');
+          } else {
+            dayClasses.push('text-gray-400 dark:text-slate-600');
+          }
+
+          if (selectionType === 'range' && startDate && endDate && isSameDay(startDate, endDate)) { // Single day range
+            dayClasses.push('bg-indigo-600 dark:bg-indigo-500 text-white rounded-full');
+          } else if (selectionType === 'range' && isRangeStart) {
+            dayClasses.push('bg-indigo-600 dark:bg-indigo-500 text-white rounded-l-full');
+          } else if (selectionType === 'range' && isRangeEnd) {
+            dayClasses.push('bg-indigo-600 dark:bg-indigo-500 text-white rounded-r-full');
+          } else if (selectionType === 'range' && isInRange) {
+            dayClasses.push('bg-indigo-200 dark:bg-indigo-700 text-indigo-800 dark:text-indigo-100 rounded-none');
+          } else if (isSelected) { // Single day or week selection
+            dayClasses.push('bg-indigo-600 dark:bg-indigo-500 text-white rounded-full');
+          } else {
+            // Default hover state if not selected/ranged
+            dayClasses.push('hover:bg-gray-100 dark:hover:bg-slate-700');
+          }
+
+          if (isToday && (!isSelected && !isInRange && !isRangeStart && !isRangeEnd)) {
+            dayClasses.push('border border-indigo-500');
+          }
+          
+          const finalDayClasses = dayClasses.join(' ');
 
           return (
             <button
+              type="button"
               key={index}
               onClick={() => handleDayClick(dayNum)}
               disabled={!dayNum}
-              className={dayClasses}
+              className={finalDayClasses}
             >
               {dayNum}
             </button>
