@@ -26,6 +26,10 @@ function App() {
     setCurrentMonthYear(monthYear);
   };
 
+  const handleSelectToday = () => { // New handler for "Today" button
+    setSelectedDate(new Date()); // Set selected date to today
+  };
+
   const openGoalManagementModal = () => setGoalManagementModalOpen(true);
   const closeGoalManagementModal = () => {
     setGoalManagementModalOpen(false);
@@ -80,6 +84,7 @@ function App() {
           onDateSelect={handleDateSelect} 
           currentMonthYear={currentMonthYear} // Pass new state
           onMonthYearChange={handleMonthYearChange} // Pass new handler
+          onSelectToday={handleSelectToday} // Pass new handler
         />
         <main className="p-8">
           <h1 className="text-4xl font-bold text-gray-800 dark:text-white">Welcome to Planning Journey</h1>

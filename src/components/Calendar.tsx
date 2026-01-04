@@ -135,19 +135,23 @@ const Calendar = ({
           const isToday = date && isSameDay(date, today);
           
           let isSelected = false;
-          let isInRange = false;
+          let isInRange = false; // For range selection: all days between start and end
+          let isRangeStart = false; // For range selection: the start date
+          let isRangeEnd = false;   // For range selection: the end date
 
           if (date) {
             if (selectionType === 'day' && selectedDate) {
               isSelected = isSameDay(date, selectedDate);
             } else if (selectionType === 'week' && selectedDate) {
-              const weekStart = getStartOfWeek(selectedDate, 1);
-              const weekEnd = getEndOfWeek(selectedDate, 1);
-              isInRange = isBetween(date, weekStart, weekEnd);
-              isSelected = isSameDay(date, selectedDate); // Highlight the clicked day within the week
+              const weekStart = getStartOfWeek(selectedDate, 1); // Monday
+              const weekEnd = getEndOfWeek(selectedDate, 1); // Sunday
+              isInRange = isBetween(date, weekStart, weekEnd); // All days in the week
+              // isSelected is true if it's within the selected week, effectively highlighting the whole week
+              isSelected = isInRange;
             } else if (selectionType === 'range' && startDate && endDate) {
+              isRangeStart = isSameDay(date, startDate);
+              isRangeEnd = isSameDay(date, endDate);
               isInRange = isBetween(date, startDate, endDate);
-              isSelected = isSameDay(date, startDate) || isSameDay(date, endDate);
             } else if (selectionType === 'range' && startDate && !endDate) {
               isSelected = isSameDay(date, startDate); // Highlight only start date when end is not yet selected
             }
@@ -157,8 +161,7 @@ const Calendar = ({
             relative flex items-center justify-center h-8 w-8 rounded-full text-sm transition-all duration-200
             ${isCurrentMonth ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-slate-600'}
             ${isToday ? 'border border-indigo-500' : ''}
-            ${isSelected || isInRange ? 'bg-indigo-600 text-white' : 'hover:bg-gray-100 dark:hover:bg-slate-700'}
-            ${(selectionType === 'range' && isInRange && !isSelected) ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200' : ''}
+            ${isSelected || isRangeStart || isRangeEnd ? 'bg-indigo-600 text-white' : (isInRange ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200' : 'hover:bg-gray-100 dark:hover:bg-slate-700')}
           `;
 
           return (

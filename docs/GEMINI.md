@@ -13,3 +13,14 @@
    - Interactive 요소(버튼, 링크)에 부드러운 트랜지션(transition-all duration-300) 반드시 추가.
 
 * "이제부터 모든 응답은 2026년 최신 디자인 트렌드가 반영된, 바로 서비스 런칭이 가능한 수준의 힙한 결과물로만 출력해."
+
+## Operational Protocol for File Modification Errors
+
+If a file modification operation (e.g., `replace`, `write_file`) fails or results in an unexpected file state, the following protocol must be strictly adhered to:
+
+1.  **Immediate Verification:** Immediately verify the actual current state of the target file using `run_shell_command('type <file_path>')` (for Windows) or `run_shell_command('cat <file_path>')` (for Linux/macOS) to bypass potential caching or tool-specific issues.
+2.  **State Analysis:** Compare the verified file content with the expected correct content.
+3.  **Targeted Re-application or Overwrite:**
+    *   If the discrepancy is minor, attempt a highly targeted `replace` operation with an extremely precise `old_string` derived directly from the verified file content.
+    *   If the discrepancy is significant, or if `replace` continues to fail, the entire file *must* be overwritten using `write_file` with the full, correct content.
+4.  **User Communication:** If file modification issues persist even after direct overwrites, inform the user about the suspected file system or environment issues preventing reliable file changes and request their manual intervention, providing the exact code to apply.

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Settings, Flag, Sun, Moon, Monitor, Check } from 'lucide-react'; // Import Check icon
+import { Settings, Flag, Sun, Moon, Monitor, Check, Calendar } from 'lucide-react'; // Import Calendar icon
 import { useTheme } from '../contexts/ThemeContext'; // Import useTheme hook
 import InlineCalendar from './InlineCalendar'; // Import InlineCalendar
 
@@ -8,9 +8,10 @@ interface HeaderProps {
   onDateSelect: (date: Date) => void;
   currentMonthYear: string; // New prop
   onMonthYearChange: (monthYear: string) => void; // Prop to pass to InlineCalendar
+  onSelectToday: () => void; // New prop for selecting today's date
 }
 
-const Header = ({ onOpenModal, onDateSelect, currentMonthYear, onMonthYearChange }: HeaderProps) => { // Destructure new props
+const Header = ({ onOpenModal, onDateSelect, currentMonthYear, onMonthYearChange, onSelectToday }: HeaderProps) => { // Destructure new props
   const [isSettingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme(); // Use the theme context
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
@@ -42,10 +43,18 @@ const Header = ({ onOpenModal, onDateSelect, currentMonthYear, onMonthYearChange
   return (
     <header className="flex flex-col border-b border-slate-200/50 dark:border-slate-700 bg-white dark:bg-gray-900">
       <div className="flex items-center justify-between p-4"> {/* This is the main horizontal flex container */}
-        <div className="flex flex-col"> {/* New wrapper for title and month/year */}
-          <h1 className="text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400">PLANNING JOURNEY</h1> {/* Smaller and fainter */}
-          <div className="text-xl font-bold text-gray-900 dark:text-white"> {/* Month/year display */}
-            {currentMonthYear}
+        <div className="flex flex-col"> {/* Left side container: title and month/year + Today button */}
+          <h1 className="text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400 mb-1">PLANNING JOURNEY</h1> {/* Smaller and fainter, added mb-1 */}
+          <div className="flex items-center"> {/* Row for month/year and today button */}
+            <div className="text-xl font-bold text-gray-900 dark:text-white"> {/* Month/year display */}
+              {currentMonthYear}
+            </div>
+            <button
+              onClick={onSelectToday}
+              className="ml-2 p-1 rounded-full text-indigo-600 dark:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300 flex items-center gap-1"
+            >
+              <Calendar className="w-5 h-5" /> Today
+            </button>
           </div>
         </div>
         <div className="flex items-center gap-4 relative">
