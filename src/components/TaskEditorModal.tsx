@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { db, type Task, type Goal } from '../db';
-import Calendar from './Calendar'; // Will be used for date selection
+import Calendar from './Calendar';
 import { useLiveQuery } from 'dexie-react-hooks';
-import GoalAutocomplete from './GoalAutocomplete'; // Import GoalAutocomplete
+import GoalAutocomplete from './GoalAutocomplete';
+import DateSelectorModal from './DateSelectorModal'; // Import DateSelectorModal
+import { Calendar as CalendarIcon } from 'lucide-react'; // Import Calendar icon from lucide-react
 
 interface TaskEditorModalProps {
   isOpen: boolean;
@@ -16,6 +18,7 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
   const [description, setDescription] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [selectedGoalId, setSelectedGoalId] = useState<number | undefined>(undefined);
+  const [isDateSelectorModalOpen, setIsDateSelectorModalOpen] = useState(false); // New state for date selector modal
   const allGoals = useLiveQuery(() => db.goals.toArray(), []);
 
   useEffect(() => {
@@ -57,6 +60,19 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
     setSelectedGoalId(goalId);
   };
 
+  const handleOpenDateSelector = () => {
+    setIsDateSelectorModalOpen(true);
+  };
+
+  const handleSelectNewDate = (date: Date) => {
+    setSelectedDate(date);
+    setIsDateSelectorModalOpen(false);
+  };
+
+  const formatDate = (date: Date | null) => {
+    if (!date) return '날짜 미지정';
+    return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
+  };
 
   return (
     <div
@@ -111,12 +127,17 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
               <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                 날짜 선택
               </label>
-              <div className="flex justify-center">
-                <Calendar
-                  selectionType="day"
-                  selectedDate={selectedDate}
-                  onSelectDate={setSelectedDate}
-                />
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white flex-grow">
+                  {formatDate(selectedDate)}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleOpenDateSelector}
+                  className="p-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-all duration-300 shadow-md"
+                >
+                  <CalendarIcon className="h-5 w-5" />
+                </button>
               </div>
             </div>
 
@@ -143,6 +164,13 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
           </div>
         </form>
       </div>
+
+      <DateSelectorModal
+        isOpen={isDateSelectorModalOpen}
+        onClose={() => setIsDateSelectorModalOpen(false)}
+        onSelectDate={handleSelectNewDate}
+        initialDate={selectedDate}
+      />
     </div>
   );
 };
