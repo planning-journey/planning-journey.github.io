@@ -85,8 +85,12 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
   // Scroll to a specific date (e.g., today or selected date)
   const scrollToDate = useCallback((date: Date, behavior: ScrollBehavior = 'smooth') => {
     if (scrollRef.current) {
-      const targetTime = date.getTime();
-      const startTime = startVirtualDate.getTime();
+      // Normalize the target date to midnight to ensure accurate diffDays calculation
+      const normalizedTargetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const normalizedStartDate = new Date(startVirtualDate.getFullYear(), startVirtualDate.getMonth(), startVirtualDate.getDate());
+
+      const targetTime = normalizedTargetDate.getTime();
+      const startTime = normalizedStartDate.getTime();
       const diffDays = Math.round(Math.abs(targetTime - startTime) / (1000 * 60 * 60 * 24));
 
       const scrollPosition = diffDays * DAY_WIDTH - (scrollRef.current.clientWidth / 2) + (DAY_WIDTH / 2);
@@ -96,14 +100,14 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
         behavior: behavior
       });
     }
-  }, [startVirtualDate, calculateVisibleDates]);
+  }, [startVirtualDate]);
 
 
   // Effect to scroll to selectedDateProp when it changes (user clicks a date or 'Today')
   useEffect(() => {
     // Only scroll if selectedDateProp has genuinely changed its date value
     if (!lastScrolledSelectedDateRef.current || !isSameDay(selectedDateProp, lastScrolledSelectedDateRef.current)) {
-      scrollToDate(selectedDateProp);
+      scrollToDate(selectedDateProp, 'auto');
       lastScrolledSelectedDateRef.current = selectedDateProp;
     }
   }, [selectedDateProp, scrollToDate]);
@@ -119,6 +123,18 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
   // State to hold dates currently visible + buffer
   const [renderedDates, setRenderedDates] = useState<Date[]>([]);
   const [transformOffset, setTransformOffset] = useState(0);
+
+  const lastScrolledViewDateRef = useRef<Date | null>(null);
+
+  // Effect to scroll to currentViewDateProp when it changes (from parent)
+  useEffect(() => {
+    // Only scroll if currentViewDateProp has genuinely changed its month/year value
+    // and it's different from the last time we scrolled due to currentViewDateProp
+    if (!lastScrolledViewDateRef.current || !isSameMonthYear(currentViewDateProp, lastScrolledViewDateRef.current)) {
+      scrollToDate(currentViewDateProp, 'auto');
+      lastScrolledViewDateRef.current = currentViewDateProp;
+    }
+  }, [currentViewDateProp, scrollToDate]);
 
 
   // Handle scroll event
