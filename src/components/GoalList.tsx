@@ -3,16 +3,17 @@ import type { Goal } from '../db';
 interface GoalListProps {
   goals: Goal[];
   onGoalSelect?: (goal: Goal) => void;
+  currentDate: Date;
 }
 
-const getDdayInfo = (endDate: Date): { text: string; isUrgent: boolean } => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+const getDdayInfo = (endDate: Date, selectedDate: Date): { text: string; isUrgent: boolean } => {
+  const current = new Date(selectedDate);
+  current.setHours(0, 0, 0, 0);
 
   const end = new Date(endDate);
   end.setHours(0, 0, 0, 0);
 
-  const diffTime = end.getTime() - today.getTime();
+  const diffTime = end.getTime() - current.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
   const isUrgent = diffDays >= 0 && diffDays <= 7;
@@ -29,12 +30,12 @@ const getDdayInfo = (endDate: Date): { text: string; isUrgent: boolean } => {
   return { text, isUrgent };
 };
 
-const GoalList = ({ goals, onGoalSelect }: GoalListProps) => {
+const GoalList = ({ goals, onGoalSelect, currentDate }: GoalListProps) => {
   return (
     <div className="space-y-1 px-4 pb-2"> {/* Reduced vertical space and added horizontal padding */}
       {goals.length > 0 ? (
         goals.map((goal) => {
-          const dDay = getDdayInfo(goal.endDate);
+          const dDay = getDdayInfo(goal.endDate, currentDate);
           return (
             <div
               key={goal.id}

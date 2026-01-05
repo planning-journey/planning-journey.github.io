@@ -9,14 +9,14 @@ interface OngoingGoalsHeaderProps {
   onGoalSelect?: (goal: Goal) => void;
 }
 
-const isUrgentGoal = (endDate: Date): boolean => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+const isUrgentGoal = (endDate: Date, compareDate: Date): boolean => {
+  const current = new Date(compareDate);
+  current.setHours(0, 0, 0, 0);
 
   const end = new Date(endDate);
   end.setHours(0, 0, 0, 0);
 
-  const diffTime = end.getTime() - today.getTime();
+  const diffTime = end.getTime() - current.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
   // Urgent if diffDays is between 0 and 7 (inclusive)
@@ -62,8 +62,8 @@ const OngoingGoalsHeader = ({ goals, selectedDate, onGoalSelect }: OngoingGoalsH
 
   const urgentGoals = useMemo(() => {
     if (!filteredGoals) return [];
-    return filteredGoals.filter(goal => isUrgentGoal(goal.endDate));
-  }, [filteredGoals]);
+    return filteredGoals.filter(goal => isUrgentGoal(goal.endDate, selectedDate));
+  }, [filteredGoals, selectedDate]);
 
   return (
     <div className="bg-white dark:bg-slate-900/70 backdrop-blur-sm border-b border-slate-200/50">
@@ -83,7 +83,7 @@ const OngoingGoalsHeader = ({ goals, selectedDate, onGoalSelect }: OngoingGoalsH
           종료일이 임박한 {urgentGoals.length}개의 목표가 있습니다.
         </div>
       )}
-      {isOpen && <GoalList goals={filteredGoals} onGoalSelect={onGoalSelect} />}
+      {isOpen && <GoalList goals={filteredGoals} onGoalSelect={onGoalSelect} currentDate={selectedDate} />}
     </div>
   );
 };
