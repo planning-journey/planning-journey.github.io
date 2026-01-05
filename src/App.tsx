@@ -102,8 +102,8 @@ function App() {
         <Header 
           onOpenModal={openGoalManagementModal} 
           onDateSelect={handleDateSelect} 
-          currentMonthYear={currentMonthYear}
-          onMonthYearChange={handleMonthYearChange}
+          currentCalendarViewDate={currentCalendarViewDate}
+          onCalendarViewChange={handleCalendarViewChange}
           onSelectToday={handleSelectToday}
           selectedDate={selectedDate}
           todayScrollTrigger={todayScrollTrigger}
