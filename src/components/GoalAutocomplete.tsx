@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { type Goal } from '../db';
 
 interface GoalAutocompleteProps {
@@ -9,7 +9,6 @@ interface GoalAutocompleteProps {
 
 const GoalAutocomplete: React.FC<GoalAutocompleteProps> = ({ goals, selectedGoalId, onSelectGoal }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredGoals, setFilteredGoals] = useState<Goal[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState<'above' | 'below'>('below');
   const [highlightedIndex, setHighlightedIndex] = useState(-1); // New state for keyboard navigation
@@ -18,25 +17,21 @@ const GoalAutocomplete: React.FC<GoalAutocompleteProps> = ({ goals, selectedGoal
   const listRef = useRef<HTMLUListElement>(null); // Ref for the ul element
 
   useEffect(() => {
-    if (selectedGoalId) {
-      const currentGoal = goals.find(g => g.id === selectedGoalId);
-      setSearchTerm(currentGoal ? currentGoal.name : '');
-    } else {
-      setSearchTerm('');
+    const newSearchTerm = selectedGoalId
+      ? goals.find(g => g.id === selectedGoalId)?.name || ''
+      : '';
+    if (newSearchTerm !== searchTerm) {
+      setSearchTerm(newSearchTerm);
     }
-  }, [selectedGoalId, goals]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGoalId, goals]); // Removed 'searchTerm' from dependencies to avoid infinite loop when setSearchTerm is called.
 
-  useEffect(() => {
-    if (searchTerm === '') {
-      setFilteredGoals(goals);
-    } else {
-      setFilteredGoals(
-        goals.filter(goal =>
-          goal.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
-    }
-    setHighlightedIndex(-1); // Reset highlighted index on filter change
+
+
+  const filteredGoals = useMemo(() => {
+    return goals.filter(goal =>
+      goal.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   }, [searchTerm, goals]);
 
   // Handle click outside to close dropdown
@@ -61,14 +56,19 @@ const GoalAutocomplete: React.FC<GoalAutocompleteProps> = ({ goals, selectedGoal
       const spaceAbove = inputRect.top;
 
       const requiredSpace = Math.min(filteredGoals.length * 40, 200) + 10;
+      let newPosition: 'above' | 'below';
 
       if (spaceBelow < requiredSpace && spaceAbove > requiredSpace) {
-        setDropdownPosition('above');
+        newPosition = 'above';
       } else {
-        setDropdownPosition('below');
+        newPosition = 'below';
+      }
+
+      if (newPosition !== dropdownPosition) {
+        setDropdownPosition(newPosition);
       }
     }
-  }, [isOpen, filteredGoals.length]);
+  }, [isOpen, filteredGoals.length, dropdownPosition]);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -86,12 +86,12 @@ const GoalAutocomplete: React.FC<GoalAutocompleteProps> = ({ goals, selectedGoal
     selectGoal(goal);
   };
 
-  const handleClearSelection = () => {
+  const handleClearSelection = useCallback(() => {
     setSearchTerm('');
     onSelectGoal(undefined);
     setIsOpen(false);
     inputRef.current?.focus();
-  };
+  }, [onSelectGoal]);
 
   // Keyboard navigation
   const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {

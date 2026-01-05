@@ -35,17 +35,19 @@ const formatPeriod = (goal: Goal): string => {
       return `${startYear}년`;
     case 'monthly':
       return `${startYear}년 ${startMonth}월`;
-    case 'weekly':
+    case 'weekly': {
       // Assuming week starts on Monday (weekStartsOn: 1 in Calendar.tsx)
       const weekNum = getWeekOfMonth(startDate);
       return `${startMonth}월 ${weekNum}째 주 (${startDate.getDate()}일 ~ ${endDate.getDate()}일)`;
+    }
     case 'daily':
       return `${startYear}년 ${startMonth}월 ${startDate.getDate()}일`;
-    case 'free':
+    case 'free': {
       const endYear = endDate.getFullYear();
       const endMonth = endDate.getMonth() + 1;
       const endDateDay = endDate.getDate();
       return `${startYear}년 ${startMonth}월 ${startDate.getDate()}일 ~ ${endYear}년 ${endMonth}월 ${endDateDay}일`;
+    }
     default:
       return "기간 정보 없음";
   }

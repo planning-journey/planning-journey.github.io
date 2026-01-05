@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
+import EvaluationContent from './EvaluationContent'; // Import EvaluationContent
 
-const EvaluationHeader = () => {
+interface EvaluationHeaderProps {
+  selectedDate: Date;
+}
+
+const EvaluationHeader: React.FC<EvaluationHeaderProps> = ({ selectedDate }) => {
   const [isOpen, setIsOpen] = useState(() => {
     const savedState = localStorage.getItem('evaluationHeaderOpen');
     return savedState !== null ? JSON.parse(savedState) : true;
@@ -27,7 +32,7 @@ const EvaluationHeader = () => {
           />
         </button>
       </div>
-      {/* {isOpen && <EvaluationContent />} */} {/* Toggle state is not implemented yet */}
+      {isOpen && <EvaluationContent selectedDate={selectedDate} />}
     </div>
   );
 };

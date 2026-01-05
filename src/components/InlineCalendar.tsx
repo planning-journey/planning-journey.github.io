@@ -29,7 +29,12 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  // State to hold dates currently visible + buffer
+  const [renderedDates, setRenderedDates] = useState<Date[]>([]);
+  const [transformOffset, setTransformOffset] = useState(0);
+
   const lastScrolledSelectedDateRef = useRef<Date | null>(null); // To track the last selectedDateProp that caused a scroll
+  const lastScrolledViewDateRef = useRef<Date | null>(null);
 
   // Conceptual total range of dates
   const START_YEAR = 1900;
@@ -115,12 +120,6 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
     }
   }, [todayScrollTrigger, scrollToDate]);
 
-
-  // State to hold dates currently visible + buffer
-  const [renderedDates, setRenderedDates] = useState<Date[]>([]);
-  const [transformOffset, setTransformOffset] = useState(0);
-
-  const lastScrolledViewDateRef = useRef<Date | null>(null);
 
   // Effect to scroll to currentViewDateProp when it changes (from parent)
   useEffect(() => {

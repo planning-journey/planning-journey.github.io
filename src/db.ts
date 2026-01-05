@@ -20,9 +20,16 @@ export interface Task {
   createdAt: Date;
 }
 
+export interface DailyEvaluation {
+  date: string; // YYYY-MM-DD format, primary key
+  evaluationText: string;
+  createdAt: Date;
+}
+
 export class MySubClassedDexie extends Dexie {
-  goals!: Table<Goal>; 
+  goals!: Table<Goal>;
   tasks!: Table<Task>;
+  dailyEvaluations!: Table<DailyEvaluation>;
 
   constructor() {
     super('planningJourneyDB');
@@ -40,6 +47,11 @@ export class MySubClassedDexie extends Dexie {
     this.version(5).stores({
       goals: '++id, name, startDate, endDate, createdAt',
       tasks: '++id, goalId, date, description, createdAt' // Add description to tasks store
+    });
+    this.version(6).stores({
+      goals: '++id, name, startDate, endDate, createdAt',
+      tasks: '++id, goalId, date, description, createdAt',
+      dailyEvaluations: '&date, createdAt' // Primary key is date, createdAt is indexed
     });
   }
 }

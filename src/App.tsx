@@ -190,7 +190,6 @@ function App() {
 
         <main className="flex-1 overflow-y-auto flex flex-col items-stretch">
           <DailyDetailArea
-            selectedDate={selectedDate}
             formattedSelectedDate={formattedSelectedDate}
             scrollToTaskId={latestAddedTaskId}
             onClearScrollToTask={handleClearScrollToTask}
@@ -200,7 +199,7 @@ function App() {
         <div className="sticky bottom-0 z-10 bg-white dark:bg-slate-900 shadow-lg">
           {/* DailyDetailForm moved here, before EvaluationHeader */}
           <DailyDetailForm onAddTask={handleAddTask} selectedDate={selectedDate} ref={dailyDetailFormInputRef} />
-          <EvaluationHeader />
+          <EvaluationHeader selectedDate={selectedDate} />
         </div>
 
         <GoalManagementModal

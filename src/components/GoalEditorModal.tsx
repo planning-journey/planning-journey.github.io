@@ -69,6 +69,13 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit }: GoalEditorModalProps) 
   };
 
 
+  // Helper to compare dates (considering null)
+  const datesAreEqual = (date1: Date | null, date2: Date | null) => {
+    if (date1 === null && date2 === null) return true;
+    if (date1 === null || date2 === null) return false;
+    return date1.getTime() === date2.getTime();
+  };
+
   // Effect to populate form when goalToEdit changes
   useEffect(() => {
     if (goalToEdit) {
@@ -125,9 +132,15 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit }: GoalEditorModalProps) 
       calculatedEndDate = selectedCalendarDate;
     }
 
-    setStartDate(calculatedStartDate);
-    setEndDate(calculatedEndDate);
-  }, [periodType, year, month, selectedCalendarDate]);
+    // Only update if dates actually change to prevent unnecessary re-renders
+    if (
+      !datesAreEqual(startDate, calculatedStartDate) ||
+      !datesAreEqual(endDate, calculatedEndDate)
+    ) {
+      setStartDate(calculatedStartDate);
+      setEndDate(calculatedEndDate);
+    }
+  }, [periodType, year, month, selectedCalendarDate, getStartOfYear, getEndOfYear, getStartOfMonth, getEndOfMonth, getStartOfWeek, getEndOfWeek, startDate, endDate]);
 
   // Reset selectedCalendarDate when periodType changes to avoid weird state issues
   useEffect(() => {
