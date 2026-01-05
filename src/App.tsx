@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import Header from './components/Header';
 import GoalManagementModal from './components/GoalManagementModal';
@@ -10,6 +10,12 @@ import DailyDetailForm from './components/DailyDetailForm'; // Import new form c
 import EvaluationHeader from './components/EvaluationHeader'; // Import new evaluation component
 import { ThemeProvider } from './contexts/ThemeContext';
 import { db, type Goal } from './db';
+
+// Helper function to check if two dates are in the same month and year
+const isSameMonthYear = (d1: Date, d2: Date) => {
+  return d1.getFullYear() === d2.getFullYear() &&
+         d1.getMonth() === d2.getMonth();
+};
 
 function App() {
   const goals = useLiveQuery(() => db.goals.toArray());
@@ -23,23 +29,26 @@ function App() {
   const [goalToDeleteId, setGoalToDeleteId] = useState<number | null>(null);
   const [goalForDetail, setGoalForDetail] = useState<Goal | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [currentCalendarViewDate, setCurrentCalendarViewDate] = useState<Date>(new Date()); // New state for calendar's currently viewed date
+  const [currentCalendarViewDate, setCurrentCalendarViewDate] = useState<Date>(new Date());
   const [todayScrollTrigger, setTodayScrollTrigger] = useState(0);
 
-  const handleDateSelect = (date: Date) => {
+  const handleDateSelect = useCallback((date: Date) => {
     setSelectedDate(date);
-    setCurrentCalendarViewDate(date); // Also update view date when a date is selected
-  };
-
-  const handleCalendarViewChange = (date: Date) => { // Renamed and modified to accept Date
     setCurrentCalendarViewDate(date);
-  };
+  }, []); // Empty dependency array as setters are stable
 
-  const handleSelectToday = () => {
+  const handleCalendarViewChange = useCallback((date: Date) => {
+    // Only update if the month/year is actually different
+    if (!isSameMonthYear(date, currentCalendarViewDate)) {
+      setCurrentCalendarViewDate(date);
+    }
+  }, [currentCalendarViewDate]); // Dependency on currentCalendarViewDate to ensure accurate comparison
+
+  const handleSelectToday = useCallback(() => {
     setSelectedDate(new Date());
-    setCurrentCalendarViewDate(new Date()); // Also update view date when 'Today' is selected
+    setCurrentCalendarViewDate(new Date());
     setTodayScrollTrigger(prev => prev + 1);
-  };
+  }, []); // Empty dependency array as setters are stable
 
   const openGoalManagementModal = () => setGoalManagementModalOpen(true);
   const closeGoalManagementModal = () => {

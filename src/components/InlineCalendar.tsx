@@ -86,7 +86,6 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
         left: scrollPosition,
         behavior: behavior
       });
-      requestAnimationFrame(() => calculateVisibleDates());
     }
   }, [startVirtualDate, calculateVisibleDates]);
 
