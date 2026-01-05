@@ -99,6 +99,13 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit }: GoalEditorModalProps) 
 
 
   useEffect(() => {
+    if (periodType === 'free') {
+      // For 'free' type, startDate and endDate are managed by user interaction
+      // with the Calendar component or initialized from goalToEdit.
+      // This effect should not interfere.
+      return;
+    }
+
     let calculatedStartDate: Date | null = null;
     let calculatedEndDate: Date | null = null;
 
@@ -116,8 +123,6 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit }: GoalEditorModalProps) 
     } else if (periodType === 'daily' && selectedCalendarDate) {
       calculatedStartDate = selectedCalendarDate;
       calculatedEndDate = selectedCalendarDate;
-    } else if (periodType === 'free') {
-      // For 'free', startDate and endDate are set directly by Calendar component
     }
 
     setStartDate(calculatedStartDate);

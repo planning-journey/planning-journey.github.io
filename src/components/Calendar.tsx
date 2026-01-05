@@ -58,7 +58,7 @@ const Calendar = ({
   onSelectDate,
   onSelectRange,
 }: CalendarProps) => {
-  const [currentMonth, setCurrentMonth] = useState(new Date()); // Represents the month being viewed
+  const [currentMonth, setCurrentMonth] = useState(startDate || new Date()); // Represents the month being viewed
   const today = new Date();
 
   // Handle month/year navigation
