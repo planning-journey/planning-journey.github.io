@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MoreVertical } from 'lucide-react';
+
 import Checkbox from './Checkbox';
 import { db, type Task, type Goal } from '../db';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -20,7 +20,10 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onEdit, onDelete, onToggleCom
   };
 
   return (
-    <div className="flex items-center justify-between rounded-none py-2 pr-1 pl-3  transition-all duration-300">
+    <div
+      className="flex items-center justify-between rounded-none py-2 pr-1 pl-3 cursor-pointer transition-all duration-300"
+      onClick={() => onEdit(task)}
+    >
       <div className="flex items-center gap-3">
         <Checkbox
           checked={task.completed}
@@ -43,33 +46,6 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onEdit, onDelete, onToggleCom
         </div>
       </div>
 
-      <div className="relative">
-        <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200 transition-all duration-300"
-        >
-          <MoreVertical className="h-5 w-5" />
-        </button>
-
-        {isMenuOpen && (
-          <div className="absolute right-0 top-full mt-2 w-36 rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-slate-700 transition-all duration-300 origin-top-right scale-100 opacity-100">
-            <div className="py-1">
-              <button
-                onClick={() => { onEdit(task); setIsMenuOpen(false); }}
-                className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-600 transition-all duration-300"
-              >
-                수정
-              </button>
-              <button
-                onClick={() => { onDelete(task.id!); setIsMenuOpen(false); }}
-                className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/50 transition-all duration-300"
-              >
-                삭제
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 };
