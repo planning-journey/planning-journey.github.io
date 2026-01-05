@@ -5,6 +5,7 @@ import GoalSelectionBottomSheet from './GoalSelectionBottomSheet';
 import TaskList from './TaskList'; // Import TaskList
 import { db, type Task } from '../db';
 import TaskEditorModal from './TaskEditorModal'; // Import TaskEditorModal
+import TaskDetailModal from './TaskDetailModal'; // Import TaskDetailModal
 import { formatDateToYYYYMMDD } from '../utils/dateUtils'; // Assuming a date utility
 
 interface DailyDetailAreaProps {
@@ -15,8 +16,10 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate }) => {
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [currentTaskText, setCurrentTaskText] = useState('');
   const [selectedGoalId, setSelectedGoalId] = useState<number | null>(null);
-  const [isTaskEditorModalOpen, setIsTaskEditorModal] = useState(false); // State for TaskEditorModal
+  const [isTaskEditorModalOpen, setIsTaskEditorModalOpen] = useState(false); // State for TaskEditorModal
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null); // State for task being edited
+  const [isTaskDetailModalOpen, setIsTaskDetailModalOpen] = useState(false); // State for TaskDetailModal
+  const [taskToView, setTaskToView] = useState<Task | null>(null); // State for task being viewed
 
   const formattedSelectedDate = formatDateToYYYYMMDD(selectedDate);
 
@@ -53,6 +56,11 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate }) => {
     setIsTaskEditorModalOpen(true);
   };
 
+  const handleViewTaskDetail = (task: Task) => {
+    setTaskToView(task);
+    setIsTaskDetailModalOpen(true);
+  };
+
   const handleSaveEditedTask = async (updatedTask: Task) => {
     try {
       if (updatedTask.id) {
@@ -83,6 +91,7 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate }) => {
         {/* 할 일 목록 표시 공간 */}
         <TaskList
           tasks={tasks || []}
+          onViewTaskDetail={handleViewTaskDetail} // Pass handler for viewing task details
           onEditTask={handleEditTask} // Pass the new handleEditTask
           onDelete={handleDeleteTask}
           onToggleComplete={handleToggleTaskComplete}
@@ -98,11 +107,19 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate }) => {
       <TaskEditorModal
         isOpen={isTaskEditorModalOpen}
         onClose={() => {
-          setIsTaskEditorModal(false);
+          setIsTaskEditorModalOpen(false); // Corrected setter
           setTaskToEdit(null); // Clear taskToEdit when modal closes
         }}
         taskToEdit={taskToEdit}
         onSave={handleSaveEditedTask}
+      />
+      <TaskDetailModal
+        isOpen={isTaskDetailModalOpen}
+        onClose={() => {
+          setIsTaskDetailModalOpen(false);
+          setTaskToView(null);
+        }}
+        task={taskToView}
       />
     </div>
   );

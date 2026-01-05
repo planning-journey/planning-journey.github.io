@@ -1,36 +1,16 @@
-import React, { useState } from 'react';
-import { db, type Task } from '../db';
+import React from 'react';
+import { type Task } from '../db';
 import TaskItem from './TaskItem';
-import TaskEditorModal from './TaskEditorModal';
 
 interface TaskListProps {
   tasks: Task[];
+  onViewTaskDetail: (task: Task) => void; // New prop for viewing task details
   onDeleteTask: (taskId: number) => void;
   onToggleTaskComplete: (taskId: number, completed: boolean) => void;
+  onEditTask: (task: Task) => void; // Keep onEditTask for the edit button within TaskItem
 }
 
-const TaskList: React.FC<TaskListProps> = ({ tasks, onEditTask, onDeleteTask, onToggleTaskComplete }) => {
-  const [isTaskEditorModalOpen, setIsTaskEditorModalOpen] = useState(false);
-  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
-
-  const handleEditTask = (task: Task) => {
-    setTaskToEdit(task);
-    setIsTaskEditorModalOpen(true);
-  };
-
-  const handleSaveTask = async (task: Task) => {
-    try {
-      if (task.id) {
-        // Update existing task
-        await db.tasks.put(task);
-      } else {
-        // Add new task (shouldn't happen via edit modal, but good to have)
-        await db.tasks.add(task);
-      }
-    } catch (error) {
-      console.error("Failed to save task: ", error);
-    }
-  };
+const TaskList: React.FC<TaskListProps> = ({ tasks, onViewTaskDetail, onDeleteTask, onToggleTaskComplete, onEditTask }) => {
 
   if (tasks.length === 0) {
     return (
@@ -44,18 +24,12 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onEditTask, onDeleteTask, on
         <TaskItem
           key={task.id}
           task={task}
-          onEdit={handleEditTask} // Use the new handler
+          onView={onViewTaskDetail} // Pass the new onViewTaskDetail prop
           onDelete={onDeleteTask}
           onToggleComplete={onToggleTaskComplete}
+          onEdit={onEditTask} // Pass onEditTask to TaskItem
         />
       ))}
-
-      <TaskEditorModal
-        isOpen={isTaskEditorModalOpen}
-        onClose={() => setIsTaskEditorModalOpen(false)}
-        taskToEdit={taskToEdit}
-        onSave={handleSaveTask}
-      />
     </div>
   );
 };
