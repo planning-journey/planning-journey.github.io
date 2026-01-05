@@ -44,6 +44,9 @@ function App() {
   const [toastMessage, setToastMessage] = useState('');
   const [isToastVisible, setIsToastVisible] = useState(false);
 
+  // New state for scrolling
+  const [latestAddedTaskId, setLatestAddedTaskId] = useState<number | null>(null);
+
   const showToast = useCallback((message: string) => {
     setToastMessage(message);
     setIsToastVisible(true);
@@ -64,12 +67,17 @@ function App() {
       date: date,
       createdAt: new Date(),
     };
-    await db.tasks.add(newTask);
+    const newTaskId = await db.tasks.add(newTask);
+    setLatestAddedTaskId(newTaskId); // Set the ID of the newly added task
     setCurrentTaskText('');
     if (dailyDetailFormInputRef.current) {
       dailyDetailFormInputRef.current.focus();
     }
   }, [dailyDetailFormInputRef]);
+
+  const handleClearScrollToTask = useCallback(() => {
+    setLatestAddedTaskId(null);
+  }, []);
 
   const handleAddTask = useCallback(async (text: string) => {
     setCurrentTaskText(text); // Store the text for later use
@@ -181,7 +189,12 @@ function App() {
         </div>
 
         <main className="flex-1 overflow-y-auto flex flex-col items-stretch">
-          <DailyDetailArea selectedDate={selectedDate} formattedSelectedDate={formattedSelectedDate} />
+          <DailyDetailArea
+            selectedDate={selectedDate}
+            formattedSelectedDate={formattedSelectedDate}
+            scrollToTaskId={latestAddedTaskId}
+            onClearScrollToTask={handleClearScrollToTask}
+          />
         </main>
 
         <div className="sticky bottom-0 z-10 bg-white dark:bg-slate-900 shadow-lg">

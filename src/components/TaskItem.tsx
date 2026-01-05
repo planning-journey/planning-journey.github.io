@@ -9,7 +9,7 @@ interface TaskItemProps {
   onToggleComplete: (taskId: number, completed: boolean) => void;
 }
 
-const TaskItem: React.FC<TaskItemProps> = ({ task, onView, onToggleComplete }) => {
+const TaskItem = React.forwardRef<HTMLDivElement, TaskItemProps>(({ task, onView, onToggleComplete }, ref) => {
   const goal = useLiveQuery(() => (task.goalId ? db.goals.get(task.goalId) : undefined), [task.goalId]);
 
   const handleToggleComplete = (completed: boolean) => {
@@ -18,6 +18,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onView, onToggleComplete }) =
 
   return (
     <div
+      ref={ref}
       className="flex flex-col items-stretch rounded-none py-2 pr-1 cursor-pointer relative group"
       onClick={() => onView(task)} // Open detail modal on main div click
     >
@@ -49,6 +50,6 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onView, onToggleComplete }) =
       )}
     </div>
   );
-};
+})
 
 export default TaskItem;

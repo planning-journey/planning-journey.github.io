@@ -7,10 +7,12 @@ import TaskDetailModal from './TaskDetailModal'; // Import TaskDetailModal
 
 interface DailyDetailAreaProps {
   selectedDate: Date;
-  formattedSelectedDate: string; // Add formattedSelectedDate to props
+  formattedSelectedDate: string;
+  scrollToTaskId: number | null;
+  onClearScrollToTask: () => void; // New prop to clear scroll request
 }
 
-const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate, formattedSelectedDate }) => {
+const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate, formattedSelectedDate, scrollToTaskId, onClearScrollToTask }) => {
   // States related to task editing/viewing, not moved
   const [isTaskEditorModalOpen, setIsTaskEditorModalOpen] = React.useState(false); // State for TaskEditorModal
   const [taskToEdit, setTaskToEdit] = React.useState<Task | null>(null); // State for task being edited
@@ -65,8 +67,10 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate, formatt
         {/* 할 일 목록 표시 공간 */}
         <TaskList
           tasks={tasks || []}
-          onViewTaskDetail={handleViewTaskDetail} // Pass handler for viewing task details
+          onViewTaskDetail={handleViewTaskDetail}
           onToggleTaskComplete={handleToggleTaskComplete}
+          scrollToTaskId={scrollToTaskId}
+          onClearScrollToTask={onClearScrollToTask} // Pass onClearScrollToTask to TaskList
         />
       </div>
       <TaskEditorModal
