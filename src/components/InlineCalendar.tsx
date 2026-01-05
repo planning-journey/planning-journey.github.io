@@ -111,7 +111,7 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
       lastScrolledSelectedDateRef.current = selectedDateProp;
     }
   }, [selectedDateProp, scrollToDate]);
-  
+
   // Effect to scroll to today when todayScrollTrigger changes
   useEffect(() => {
     if (todayScrollTrigger > 0) {
@@ -175,7 +175,7 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
   };
 
   return (
-    <div className="w-full bg-white dark:bg-gray-900 border-b border-slate-200/50 dark:border-slate-700">
+    <div className="w-full bg-white dark:bg-gray-900 dark:border-slate-700">
       <div
         ref={scrollRef}
         className="flex overflow-x-auto custom-scrollbar-hide pb-2 px-2 relative"

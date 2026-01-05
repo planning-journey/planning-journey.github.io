@@ -29,7 +29,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onEdit, onDelete, onToggleCom
         />
         <div>
           {goal && (
-            <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-slate-400 mb-0.5">
+            <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400">
               <span
                 className="block h-2 w-2 rounded-full"
                 style={{ backgroundColor: goal.color }}
@@ -37,7 +37,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onEdit, onDelete, onToggleCom
               <span>{goal.name}</span>
             </div>
           )}
-          <span className={`text-lg font-medium text-gray-900 dark:text-white ${task.completed ? 'line-through text-gray-400 dark:text-slate-500' : ''}`}>
+          <span className={`font-medium text-gray-900 dark:text-white ${task.completed ? 'line-through text-gray-400 dark:text-slate-500' : ''}`}>
             {task.text}
           </span>
         </div>

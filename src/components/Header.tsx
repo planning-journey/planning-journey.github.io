@@ -45,19 +45,19 @@ const Header = ({ onOpenModal, onDateSelect, currentCalendarViewDate, onCalendar
   const formattedMonthYear = new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long' }).format(currentCalendarViewDate);
 
   return (
-    <header className="flex flex-col border-b border-slate-200/50 dark:border-slate-700 bg-white dark:bg-gray-900">
+    <header className="flex flex-col border-b border-slate-200/50 dark:border-slate-700 bg-white dark:bg-gray-900 pb-4">
       <div className="flex items-center justify-between p-4">
         <div className="flex flex-col">
-          <h1 className="text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400 mb-1">PLANNING JOURNEY</h1>
+          <h1 className="text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400">PLANNING JOURNEY</h1>
           <div className="flex items-center">
-            <div className="text-xl font-bold text-gray-900 dark:text-white">
+            <div className="text-lg font-bold text-gray-900 dark:text-white">
               {formattedMonthYear}
             </div>
             <button
               onClick={onSelectToday}
-              className="ml-2 p-1 rounded-full text-indigo-600 dark:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300 flex items-center gap-1"
+              className="ml-2 p-1 rounded-full text-sm text-indigo-600 dark:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300 flex items-center gap-1"
             >
-              <Calendar className="w-5 h-5" /> Today
+              <Calendar className="w-4 h-4" /> Today
             </button>
           </div>
         </div>
@@ -114,12 +114,12 @@ const Header = ({ onOpenModal, onDateSelect, currentCalendarViewDate, onCalendar
           </button>
         </div>
       </div>
-      <InlineCalendar 
-        onDateSelect={onDateSelect} 
+      <InlineCalendar
+        onDateSelect={onDateSelect}
         onViewChange={onCalendarViewChange}
-        selectedDateProp={selectedDate} 
+        selectedDateProp={selectedDate}
         currentViewDateProp={currentCalendarViewDate} // Pass currentCalendarViewDate to InlineCalendar
-        todayScrollTrigger={todayScrollTrigger} 
+        todayScrollTrigger={todayScrollTrigger}
       />
     </header>
   );
