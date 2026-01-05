@@ -3,7 +3,7 @@ import { Check } from 'lucide-react';
 
 interface CheckboxProps {
   checked: boolean;
-  onChange: (checked: boolean) => void;
+  onChange: (event: boolean) => void;
   className?: string;
 }
 

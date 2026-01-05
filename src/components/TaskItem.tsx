@@ -35,7 +35,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onView, onEdit, onDelete, onT
 
   return (
     <div
-      className="flex items-start justify-between rounded-none py-2 pr-1 pl-3 cursor-pointer transition-all duration-300 relative group"
+      className="flex items-start justify-between rounded-none py-2 pr-1 pl-3 cursor-pointer relative group"
       onClick={() => onView(task)} // Open detail modal on main div click
     >
       <div className="flex items-center gap-3 flex-grow">
@@ -63,34 +63,6 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onView, onEdit, onDelete, onT
             </p>
           )}
         </div>
-      </div>
-
-      {/* More Options / Edit / Delete Menu */}
-      <div className="relative">
-        <button
-          onClick={(e) => { e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
-          className="p-1 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors duration-200 opacity-0 group-hover:opacity-100 focus:opacity-100"
-        >
-          <MoreVertical className="h-5 w-5" />
-        </button>
-        {isMenuOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-700 rounded-lg shadow-lg py-1 z-10 border border-gray-200 dark:border-slate-600">
-            <button
-              onClick={handleEditClick}
-              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors duration-150"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              수정
-            </button>
-            <button
-              onClick={handleDeleteClick}
-              className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors duration-150"
-            >
-              <Trash className="h-4 w-4 mr-2" />
-              삭제
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
