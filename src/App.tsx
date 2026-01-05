@@ -41,22 +41,27 @@ function App() {
   const [selectedGoalId, setSelectedGoalId] = useState<number | null>(null);
   const dailyDetailFormInputRef = useRef<HTMLInputElement>(null);
 
-  const formattedSelectedDate = formatDateToYYYYMMDD(selectedDate); // Define formattedSelectedDate here
+  const [toastMessage, setToastMessage] = useState('');
+  const [isToastVisible, setIsToastVisible] = useState(false);
 
-  const handleAddTask = useCallback((text: string) => {
-    setCurrentTaskText(text);
-    setIsBottomSheetOpen(true);
+  const showToast = useCallback((message: string) => {
+    setToastMessage(message);
+    setIsToastVisible(true);
+    const timer = setTimeout(() => {
+      setIsToastVisible(false);
+      setToastMessage('');
+    }, 3000); // 3 seconds
+    return () => clearTimeout(timer);
   }, []);
 
-  const handleSelectGoal = useCallback(async (goalId: number | null) => {
-    setSelectedGoalId(goalId);
-    setIsBottomSheetOpen(false);
+  const formattedSelectedDate = formatDateToYYYYMMDD(selectedDate); // Define formattedSelectedDate here
 
+  const addOrUpdateTask = useCallback(async (text: string, goalId: number | null, date: string) => {
     const newTask: Task = {
-      text: currentTaskText,
+      text: text,
       goalId: goalId,
       completed: false,
-      date: formattedSelectedDate,
+      date: date,
       createdAt: new Date(),
     };
     await db.tasks.add(newTask);
@@ -64,7 +69,24 @@ function App() {
     if (dailyDetailFormInputRef.current) {
       dailyDetailFormInputRef.current.focus();
     }
-  }, [currentTaskText, formattedSelectedDate, dailyDetailFormInputRef]);
+  }, [dailyDetailFormInputRef]);
+
+  const handleAddTask = useCallback(async (text: string) => {
+    setCurrentTaskText(text); // Store the text for later use
+
+    if (!goals || goals.length === 0) { // Check if goals array is empty
+      await addOrUpdateTask(text, null, formattedSelectedDate);
+      showToast('목표가 없습니다'); // Display toast message
+    } else {
+      setIsBottomSheetOpen(true); // Open bottom sheet if goals exist
+    }
+  }, [goals, addOrUpdateTask, showToast, formattedSelectedDate]);
+
+  const handleSelectGoal = useCallback(async (goalId: number | null) => {
+    setSelectedGoalId(goalId);
+    setIsBottomSheetOpen(false);
+    await addOrUpdateTask(currentTaskText, goalId, formattedSelectedDate);
+  }, [currentTaskText, formattedSelectedDate, addOrUpdateTask]);
 
   const handleDateSelect = useCallback((date: Date) => {
     setSelectedDate(date);
@@ -196,6 +218,11 @@ function App() {
           onSelectGoal={handleSelectGoal}
           selectedGoalId={selectedGoalId}
         />
+        {isToastVisible && (
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 p-3 bg-gray-800 text-white rounded-xl shadow-lg transition-all duration-300 z-50">
+            {toastMessage}
+          </div>
+        )}
       </div>
     </ThemeProvider>
   );
