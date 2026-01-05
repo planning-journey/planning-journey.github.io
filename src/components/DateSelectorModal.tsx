@@ -31,11 +31,12 @@ const DateSelectorModal: React.FC<DateSelectorModalProps> = ({ isOpen, onClose, 
             &times;
           </button>
         </div>
-        <div className="flex justify-center my-4">
+        <div className="flex justify-center -m-4">
           <Calendar
             selectionType="day"
             selectedDate={initialDate}
             onSelectDate={handleDateSelection}
+            showBorder={false} // Pass showBorder prop
           />
         </div>
       </div>

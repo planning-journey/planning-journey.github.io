@@ -45,7 +45,7 @@ const Header = ({ onOpenModal, onDateSelect, currentCalendarViewDate, onCalendar
   const formattedMonthYear = new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long' }).format(currentCalendarViewDate);
 
   return (
-    <header className="flex flex-col border-b border-slate-200/50 dark:border-slate-700 bg-white dark:bg-gray-900 pb-4">
+    <header className="flex flex-col border-b border-slate-200/50 dark:border-slate-700 bg-white dark:bg-gray-900 pb-2">
       <div className="flex items-center justify-between p-4">
         <div className="flex flex-col">
           <h1 className="text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400">PLANNING JOURNEY</h1>

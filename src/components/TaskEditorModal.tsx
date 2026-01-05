@@ -95,37 +95,19 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
         <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
           <div className="space-y-6">
             <div>
-              <label htmlFor="taskText" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                할 일 이름
+              <label htmlFor="goalAutocomplete" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                목표
               </label>
-              <input
-                type="text"
-                id="taskText"
-                value={taskText}
-                onChange={(e) => setTaskText(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="예: 보고서 작성"
-                required
+              <GoalAutocomplete
+                goals={allGoals || []}
+                selectedGoalId={selectedGoalId}
+                onSelectGoal={handleSelectGoal}
               />
             </div>
 
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                설명 (선택 사항)
-              </label>
-              <textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="자세한 내용을 입력하세요"
-              ></textarea>
-            </div>
-
-            <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                날짜 선택
+                날짜
               </label>
               <div className="flex items-center gap-2">
                 <span className="px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white flex-grow">
@@ -142,16 +124,33 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
             </div>
 
             <div>
-              <label htmlFor="goalAutocomplete" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                목표 (선택 사항)
+              <label htmlFor="taskText" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                할 일
               </label>
-              <GoalAutocomplete
-                goals={allGoals || []}
-                selectedGoalId={selectedGoalId}
-                onSelectGoal={handleSelectGoal}
+              <input
+                type="text"
+                id="taskText"
+                value={taskText}
+                onChange={(e) => setTaskText(e.target.value)}
+                className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="예: 보고서 작성"
+                required
               />
             </div>
 
+            <div>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                설명
+              </label>
+              <textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="자세한 내용을 입력하세요"
+              ></textarea>
+            </div>
           </div>
 
           <div className="flex justify-end mt-8">

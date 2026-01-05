@@ -7,7 +7,8 @@ interface CalendarProps {
   startDate?: Date | null; // For 'range' selection
   endDate?: Date | null; // For 'range' selection
   onSelectDate: (date: Date) => void; // Callback for 'day' or 'week' selection
-  onSelectRange: (start: Date | null, end: Date | null) => void; // Callback for 'range' selection
+  onSelectRange?: (start: Date | null, end: Date | null) => void; // Callback for 'range' selection
+  showBorder?: boolean; // New prop for border visibility, defaults to true
 }
 
 // Helper functions (re-implementing date-fns functionality using native Date methods)
@@ -51,6 +52,7 @@ const Calendar = ({
   endDate,
   onSelectDate,
   onSelectRange,
+  showBorder = true, // Default to true
 }: CalendarProps) => {
   const [currentMonth, setCurrentMonth] = useState(startDate || new Date()); // Represents the month being viewed
   const today = new Date();
@@ -74,12 +76,12 @@ const Calendar = ({
   for (let i = 1; i <= numDays; i++) {
     days.push(i);
   }
-  
+
   // Handle day click
   const handleDayClick = (dayNum: number | null) => {
     if (dayNum === null) return;
     const clickedDate = new Date(year, month, dayNum);
-    
+
     if (selectionType === 'day' || selectionType === 'week') {
       onSelectDate(clickedDate);
     } else if (selectionType === 'range') {
@@ -100,7 +102,7 @@ const Calendar = ({
   const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 w-full max-w-sm border border-gray-200 dark:border-slate-700">
+    <div className={`bg-white dark:bg-slate-800 rounded-xl p-4 w-full max-w-sm ${showBorder ? 'border border-gray-200 dark:border-slate-700 shadow-lg' : ''}`}>
       {/* Calendar Header */}
       <div className="flex items-center justify-between mb-4">
         <button type="button" onClick={goToPreviousMonth} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
@@ -127,7 +129,7 @@ const Calendar = ({
           const date = dayNum ? new Date(year, month, dayNum) : null;
           const isCurrentMonth = date && date.getMonth() === month;
           const isToday = date && isSameDay(date, today);
-          
+
           let isSelected = false;
           let isInRange = false;
           let isRangeStart = false;
@@ -183,7 +185,7 @@ const Calendar = ({
           if (isToday && !isSelected && !isInRange && !isRangeStart && !isRangeEnd) {
             dayClasses.push('border border-indigo-500 rounded-full');
           }
-          
+
           const finalDayClasses = dayClasses.join(' ');
 
           return (
