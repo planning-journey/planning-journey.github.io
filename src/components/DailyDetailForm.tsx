@@ -1,3 +1,6 @@
+import React, {useState} from 'react';
+import {Plus} from 'lucide-react';
+
 interface DailyDetailFormProps {
   onAddTask: (itemText: string) => void;
   selectedDate: Date;
