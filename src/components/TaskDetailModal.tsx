@@ -54,7 +54,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md m-4 p-6 border border-gray-200 dark:border-slate-700"
+        className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md m-4 p-6 border border-gray-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-start mb-4">
@@ -81,6 +81,11 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
         </div>
 
         <div className="space-y-4 text-gray-800 dark:text-slate-200">
+          {/* Task Name */}
+          <div>
+            <h3 className="text-xl font-bold mb-1">{task.text}</h3>
+          </div>
+
           {/* Goal */}
           {goal && (
             <div className="flex items-center text-sm">
@@ -98,16 +103,11 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
             <span>{formatDateForDisplay(task.date)}</span>
           </div>
 
-          {/* Task Name */}
-          <div>
-            <h3 className="text-xl font-bold mb-1">{task.text}</h3>
-          </div>
-
           {/* Description */}
           {task.description && (
             <div>
               <p className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">설명:</p>
-              <div className="prose dark:prose-invert max-w-none">
+              <div className="prose dark:prose-invert max-w-none prose-blue break-all">
                 <ReactMarkdown>{task.description}</ReactMarkdown>
               </div>
             </div>
