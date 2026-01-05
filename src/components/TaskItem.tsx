@@ -18,14 +18,13 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onView, onToggleComplete }) =
 
   return (
     <div
-      className="flex flex-col items-stretch rounded-none py-2 pr-1 pl-3 cursor-pointer relative group"
+      className="flex flex-col items-stretch rounded-none py-2 pr-1 cursor-pointer relative group"
       onClick={() => onView(task)} // Open detail modal on main div click
     >
-      <div className="flex items-center gap-3 flex-grow">
+      <div className="flex items-stretch flex-grow">
         <Checkbox
           checked={task.completed}
           onChange={handleToggleComplete}
-          className="h-5 w-5 mt-1"
         />
         <div>
           {goal && (
@@ -44,7 +43,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onView, onToggleComplete }) =
       </div>
 
       {task.description && (
-        <p className="text-sm text-gray-600 dark:text-slate-400 mt-0.5 whitespace-pre-wrap pl-8 line-clamp-3">
+        <p className="text-sm text-gray-600 dark:text-slate-400 mt-0.5 whitespace-pre-wrap pl-11 line-clamp-3">
           {task.description}
         </p>
       )}

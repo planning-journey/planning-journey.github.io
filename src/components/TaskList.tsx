@@ -17,7 +17,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onViewTaskDetail, onToggleTa
   }
 
   return (
-    <div className="divide-y divide-slate-200 dark:divide-slate-700 ">
+    <div className="divide-y divide-slate-200 dark:divide-slate-700">
       {tasks.map((task) => (
         <TaskItem
           key={task.id}
