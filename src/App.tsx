@@ -1,49 +1,50 @@
 import { useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import Header from './components/Header';
 import GoalManagementModal from './components/GoalManagementModal';
 import GoalEditorModal from './components/GoalEditorModal';
-import ConfirmDeleteModal from './components/ConfirmDeleteModal'; // New: Import ConfirmDeleteModal
+import ConfirmDeleteModal from './components/ConfirmDeleteModal';
 import OngoingGoalsHeader from './components/OngoingGoalsHeader';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { db, type Goal } from './db'; // New: Import db and Goal type
+import { db, type Goal } from './db';
 
 function App() {
+  const goals = useLiveQuery(() => db.goals.toArray());
+
   const [isGoalManagementModalOpen, setGoalManagementModalOpen] = useState(false);
   const [isGoalEditorModalOpen, setGoalEditorModalOpen] = useState(false);
-  const [isConfirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState(false); // New: State for delete confirmation modal
+  const [isConfirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState(false);
 
-  const [goalToEdit, setGoalToEdit] = useState<Goal | null>(null); // New: State for goal being edited
-  const [goalToDeleteId, setGoalToDeleteId] = useState<number | null>(null); // New: State for goal ID to delete
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date()); // New: State for selected date from calendar
-  const [currentMonthYear, setCurrentMonthYear] = useState(''); // New: State for current month/year from calendar
+  const [goalToEdit, setGoalToEdit] = useState<Goal | null>(null);
+  const [goalToDeleteId, setGoalToDeleteId] = useState<number | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [currentMonthYear, setCurrentMonthYear] = useState('');
 
-  const handleDateSelect = (date: Date) => { // New: Handler for date selection
+  const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
-    console.log('Selected date:', date.toDateString()); // For debugging, can be removed later
-    // Here you would typically filter main content based on the selected date
   };
 
-  const handleMonthYearChange = (monthYear: string) => { // New: Handler for month/year change from calendar
+  const handleMonthYearChange = (monthYear: string) => {
     setCurrentMonthYear(monthYear);
   };
 
-  const handleSelectToday = () => { // New handler for "Today" button
-    setSelectedDate(new Date()); // Set selected date to today
+  const handleSelectToday = () => {
+    setSelectedDate(new Date());
   };
 
   const openGoalManagementModal = () => setGoalManagementModalOpen(true);
   const closeGoalManagementModal = () => {
     setGoalManagementModalOpen(false);
-    setGoalToEdit(null); // Clear goalToEdit when closing management modal
+    setGoalToEdit(null);
   };
 
-  const openNewGoalEditorModal = () => { // New: Function to open editor for new goal
-    setGoalToEdit(null); // Ensure no goal is being edited
+  const openNewGoalEditorModal = () => {
+    setGoalToEdit(null);
     setGoalManagementModalOpen(false);
     setGoalEditorModalOpen(true);
   };
 
-  const openEditGoalEditorModal = (goal: Goal) => { // New: Function to open editor for existing goal
+  const openEditGoalEditorModal = (goal: Goal) => {
     setGoalToEdit(goal);
     setGoalManagementModalOpen(false);
     setGoalEditorModalOpen(true);
@@ -51,28 +52,27 @@ function App() {
 
   const closeGoalEditorModal = () => {
     setGoalEditorModalOpen(false);
-    setGoalToEdit(null); // Clear goalToEdit after closing editor
-    setGoalManagementModalOpen(true); // Re-open management modal
+    setGoalToEdit(null);
+    setGoalManagementModalOpen(true);
   };
 
-  const openConfirmDeleteModal = (id: number) => { // New: Function to open delete confirmation
+  const openConfirmDeleteModal = (id: number) => {
     setGoalToDeleteId(id);
     setConfirmDeleteModalOpen(true);
   };
 
-  const closeConfirmDeleteModal = () => { // New: Function to close delete confirmation
+  const closeConfirmDeleteModal = () => {
     setConfirmDeleteModalOpen(false);
     setGoalToDeleteId(null);
   };
 
-  const handleConfirmDelete = async () => { // New: Function to handle actual deletion
+  const handleConfirmDelete = async () => {
     if (goalToDeleteId !== null) {
       try {
         await db.goals.delete(goalToDeleteId);
         closeConfirmDeleteModal();
       } catch (error) {
         console.error("Failed to delete goal: ", error);
-        // Optionally, show an error message
       }
     }
   };
@@ -83,13 +83,13 @@ function App() {
         <Header 
           onOpenModal={openGoalManagementModal} 
           onDateSelect={handleDateSelect} 
-          currentMonthYear={currentMonthYear} // Pass new state
-          onMonthYearChange={handleMonthYearChange} // Pass new handler
-          onSelectToday={handleSelectToday} // Pass new handler
-          selectedDate={selectedDate} // Pass selectedDate state
+          currentMonthYear={currentMonthYear}
+          onMonthYearChange={handleMonthYearChange}
+          onSelectToday={handleSelectToday}
+          selectedDate={selectedDate}
         />
         <main>
-          <OngoingGoalsHeader />
+          <OngoingGoalsHeader goals={goals} selectedDate={selectedDate} />
           <div className="p-8">
             <h1 className="text-4xl font-bold text-gray-800 dark:text-white">Welcome to Planning Journey</h1>
             <p className="text-gray-600 dark:text-slate-400 mt-2">Your journey starts here. Define your goals and track your progress.</p>
@@ -99,9 +99,14 @@ function App() {
         <GoalManagementModal 
           isOpen={isGoalManagementModalOpen} 
           onClose={closeGoalManagementModal}
-          onAddNewGoal={openNewGoalEditorModal} // Updated to new function
-          onEditGoal={openEditGoalEditorModal} // New prop
-          onDeleteGoal={openConfirmDeleteModal} // New prop
+          onAddNewGoal={openNewGoalEditorModal}
+          onEditGoal={openEditGoalEditorModal}
+          onDeleteGoal={openConfirmDeleteModal}
+        />
+        <GoalEditorModal 
+          isOpen={isGoalEditorModalOpen} 
+          onClose={closeGoalEditorModal}
+          goalToEdit={goalToEdit}
         />
         <ConfirmDeleteModal
           isOpen={isConfirmDeleteModalOpen}
