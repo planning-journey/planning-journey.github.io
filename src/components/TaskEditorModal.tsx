@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { db, type Task, type Goal } from '../db';
+import { db, type Task } from '../db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import GoalAutocomplete from './GoalAutocomplete';
 import DateSelectorModal from './DateSelectorModal';
@@ -17,7 +17,7 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
   const [taskText, setTaskText] = useState('');
   const [description, setDescription] = useState(''); // Add description state
   const [selectedDate, setSelectedDate] = useState<string | null>(formatDateToYYYYMMDD(new Date()));
-  const [selectedGoalId, setSelectedGoalId] = useState<number | undefined>(undefined);
+  const [selectedGoalId, setSelectedGoalId] = useState<number | null | undefined>(undefined);
   const [isDateSelectorModalOpen, setIsDateSelectorModalOpen] = useState(false);
   const allGoals = useLiveQuery(() => db.goals.toArray(), []);
   const textareaRef = useRef<HTMLTextAreaElement>(null); // Ref for textarea
@@ -56,7 +56,7 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
       text: taskText,
       description: description, // Include description in updated task
       date: selectedDate,
-      goalId: selectedGoalId,
+      goalId: selectedGoalId === undefined ? null : selectedGoalId,
       completed: taskToEdit?.completed || false,
       createdAt: taskToEdit?.createdAt || new Date(),
     };
@@ -65,7 +65,7 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
     onClose();
   };
 
-  const handleSelectGoal = (goalId: number | undefined) => {
+  const handleSelectGoal = (goalId: number | null | undefined) => {
     setSelectedGoalId(goalId);
   };
 

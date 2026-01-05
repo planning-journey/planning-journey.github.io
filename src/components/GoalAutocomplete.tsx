@@ -3,8 +3,8 @@ import { type Goal } from '../db';
 
 interface GoalAutocompleteProps {
   goals: Goal[];
-  selectedGoalId: number | undefined;
-  onSelectGoal: (goalId: number | undefined) => void;
+  selectedGoalId: number | null | undefined;
+  onSelectGoal: (goalId: number | null | undefined) => void;
 }
 
 const GoalAutocomplete: React.FC<GoalAutocompleteProps> = ({ goals, selectedGoalId, onSelectGoal }) => {

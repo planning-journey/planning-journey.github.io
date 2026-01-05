@@ -85,6 +85,8 @@ const Calendar = ({
     if (selectionType === 'day' || selectionType === 'week') {
       onSelectDate(clickedDate);
     } else if (selectionType === 'range') {
+      if (!onSelectRange) return; // Add this check
+
       if (!startDate || (startDate && endDate)) {
         // Start a new range or reset if range already selected
         onSelectRange(clickedDate, null);

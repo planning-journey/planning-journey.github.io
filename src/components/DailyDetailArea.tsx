@@ -92,9 +92,9 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate }) => {
         <TaskList
           tasks={tasks || []}
           onViewTaskDetail={handleViewTaskDetail} // Pass handler for viewing task details
-          onEditTask={handleEditTask} // Pass the new handleEditTask
-          onDelete={handleDeleteTask}
-          onToggleComplete={handleToggleTaskComplete}
+
+
+          onToggleTaskComplete={handleToggleTaskComplete}
         />
       </div>
       <DailyDetailForm onAddTask={handleAddTask} selectedDate={selectedDate} />

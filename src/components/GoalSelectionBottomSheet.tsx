@@ -1,6 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
-import { db, type Goal } from '../db';
+import { db } from '../db';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 interface GoalSelectionBottomSheetProps {

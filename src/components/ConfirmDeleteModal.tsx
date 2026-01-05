@@ -16,8 +16,8 @@ const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm }: ConfirmDeleteModalPr
         className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-sm m-4 p-6 border border-gray-200 dark:border-slate-700 text-center"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">목표 삭제 확인</h3>
-        <p className="text-gray-700 dark:text-slate-300 mb-6">정말로 이 목표를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</p>
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">삭제 확인</h3>
+        <p className="text-gray-700 dark:text-slate-300 mb-6">정말로 이 항목을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</p>
 
         <div className="flex justify-center gap-4">
           <button

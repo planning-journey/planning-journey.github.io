@@ -5,12 +5,10 @@ import TaskItem from './TaskItem';
 interface TaskListProps {
   tasks: Task[];
   onViewTaskDetail: (task: Task) => void; // New prop for viewing task details
-  onDeleteTask: (taskId: number) => void;
   onToggleTaskComplete: (taskId: number, completed: boolean) => void;
-  onEditTask: (task: Task) => void; // Keep onEditTask for the edit button within TaskItem
 }
 
-const TaskList: React.FC<TaskListProps> = ({ tasks, onViewTaskDetail, onDeleteTask, onToggleTaskComplete, onEditTask }) => {
+const TaskList: React.FC<TaskListProps> = ({ tasks, onViewTaskDetail, onToggleTaskComplete }) => {
 
   if (tasks.length === 0) {
     return (
@@ -25,9 +23,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onViewTaskDetail, onDeleteTa
           key={task.id}
           task={task}
           onView={onViewTaskDetail} // Pass the new onViewTaskDetail prop
-          onDelete={onDeleteTask}
           onToggleComplete={onToggleTaskComplete}
-          onEdit={onEditTask} // Pass onEditTask to TaskItem
         />
       ))}
     </div>

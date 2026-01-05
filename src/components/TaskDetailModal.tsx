@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { db, type Task, type Goal } from '../db';
+import { db, type Task } from '../db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { CalendarDays, Tag, Edit, Trash, X } from 'lucide-react'; // Import Edit, Trash, X icons
 import { parseYYYYMMDDToDate } from '../utils/dateUtils';
+import ConfirmDeleteModal from './ConfirmDeleteModal';
 
 interface TaskDetailModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface TaskDetailModalProps {
 
 const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task, onEditTask, onDeleteTask }) => {
   const goal = useLiveQuery(() => (task?.goalId ? db.goals.get(task.goalId) : undefined), [task?.goalId]);
+  const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
 
   if (!isOpen || !task) return null;
 
@@ -26,11 +28,24 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent closing modal
     onEditTask(task);
+    onClose(); // Close the detail modal when editing
   };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent closing modal
-    onDeleteTask(task.id!);
+    setShowConfirmDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (task?.id) {
+      onDeleteTask(task.id);
+      setShowConfirmDeleteModal(false);
+      onClose(); // Close the detail modal after deleting
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowConfirmDeleteModal(false);
   };
 
   return (
@@ -99,6 +114,12 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
           )}
         </div>
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={showConfirmDeleteModal}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 };

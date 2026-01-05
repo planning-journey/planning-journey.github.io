@@ -1,36 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Checkbox from './Checkbox';
-import { db, type Task, type Goal } from '../db';
+import { db, type Task } from '../db';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { MoreVertical, Edit, Trash } from 'lucide-react'; // Import icons
 
 interface TaskItemProps {
   task: Task;
-  onView: (task: Task) => void; // New prop for viewing
-  onEdit: (task: Task) => void; // Explicit edit prop
-  onDelete: (taskId: number) => void;
+  onView: (task: Task) => void;
   onToggleComplete: (taskId: number, completed: boolean) => void;
 }
 
-const TaskItem: React.FC<TaskItemProps> = ({ task, onView, onEdit, onDelete, onToggleComplete }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+const TaskItem: React.FC<TaskItemProps> = ({ task, onView, onToggleComplete }) => {
   const goal = useLiveQuery(() => (task.goalId ? db.goals.get(task.goalId) : undefined), [task.goalId]);
 
-  const handleToggleComplete = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.stopPropagation(); // Prevent opening detail modal
-    onToggleComplete(task.id!, !task.completed);
-  };
-
-  const handleEditClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent opening detail modal
-    onEdit(task);
-    setIsMenuOpen(false);
-  };
-
-  const handleDeleteClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent opening detail modal
-    onDelete(task.id!);
-    setIsMenuOpen(false);
+  const handleToggleComplete = (completed: boolean) => {
+    onToggleComplete(task.id!, completed);
   };
 
   return (
