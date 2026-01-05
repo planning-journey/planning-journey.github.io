@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { db, type Task, type Goal } from '../db';
 import Calendar from './Calendar'; // Will be used for date selection
 import { useLiveQuery } from 'dexie-react-hooks';
+import GoalAutocomplete from './GoalAutocomplete'; // Import GoalAutocomplete
 
 interface TaskEditorModalProps {
   isOpen: boolean;
@@ -52,9 +53,8 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
     onClose();
   };
 
-  const handleGoalChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = event.target.value;
-    setSelectedGoalId(value === "" ? undefined : parseInt(value));
+  const handleSelectGoal = (goalId: number | undefined) => {
+    setSelectedGoalId(goalId);
   };
 
 
@@ -121,22 +121,14 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
             </div>
 
             <div>
-              <label htmlFor="goalSelect" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+              <label htmlFor="goalAutocomplete" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                 목표 (선택 사항)
               </label>
-              <select
-                id="goalSelect"
-                value={selectedGoalId !== undefined ? selectedGoalId : ""}
-                onChange={handleGoalChange}
-                className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="">-- 목표 없음 --</option>
-                {allGoals?.map((goal) => (
-                  <option key={goal.id} value={goal.id}>
-                    {goal.name}
-                  </option>
-                ))}
-              </select>
+              <GoalAutocomplete
+                goals={allGoals || []}
+                selectedGoalId={selectedGoalId}
+                onSelectGoal={handleSelectGoal}
+              />
             </div>
 
           </div>
