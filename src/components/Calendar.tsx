@@ -135,25 +135,31 @@ const Calendar = ({
           const isToday = date && isSameDay(date, today);
           
           let isSelected = false;
-          let isInRange = false; // For range selection: all days between start and end
-          let isRangeStart = false; // For range selection: the start date
-          let isRangeEnd = false;   // For range selection: the end date
+          let isInRange = false;
+          let isRangeStart = false;
+          let isRangeEnd = false;
 
           if (date) {
             if (selectionType === 'day' && selectedDate) {
               isSelected = isSameDay(date, selectedDate);
             } else if (selectionType === 'week' && selectedDate) {
               const weekStart = getStartOfWeek(selectedDate, 1); // Monday
-              const weekEnd = getEndOfWeek(selectedDate, 1); // Sunday
-              isInRange = isBetween(date, weekStart, weekEnd); // All days in the week
-              // isSelected is true if it's within the selected week, effectively highlighting the whole week
-              isSelected = isInRange;
-            } else if (selectionType === 'range' && startDate && endDate) {
-              isRangeStart = isSameDay(date, startDate);
-              isRangeEnd = isSameDay(date, endDate);
-              isInRange = isBetween(date, startDate, endDate);
-            } else if (selectionType === 'range' && startDate && !endDate) {
-              isSelected = isSameDay(date, startDate); // Highlight only start date when end is not yet selected
+              const weekEnd = getEndOfWeek(selectedDate, 1);
+              isInRange = isBetween(date, weekStart, weekEnd);
+              isRangeStart = isSameDay(date, weekStart);
+              isRangeEnd = isSameDay(date, weekEnd);
+            } else if (selectionType === 'range' && startDate) {
+              if (endDate) {
+                if (isSameDay(startDate, endDate)) {
+                  isSelected = isSameDay(date, startDate);
+                } else {
+                  isInRange = isBetween(date, startDate, endDate);
+                  isRangeStart = isSameDay(date, startDate);
+                  isRangeEnd = isSameDay(date, endDate);
+                }
+              } else {
+                isSelected = isSameDay(date, startDate);
+              }
             }
           }
 
@@ -167,23 +173,21 @@ const Calendar = ({
             dayClasses.push('text-gray-400 dark:text-slate-600');
           }
 
-          if (selectionType === 'range' && startDate && endDate && isSameDay(startDate, endDate)) { // Single day range
-            dayClasses.push('bg-indigo-600 dark:bg-indigo-500 text-white rounded-full');
-          } else if (selectionType === 'range' && isRangeStart) {
+          if (isRangeStart) {
             dayClasses.push('bg-indigo-600 dark:bg-indigo-500 text-white rounded-l-full');
-          } else if (selectionType === 'range' && isRangeEnd) {
+          } else if (isRangeEnd) {
             dayClasses.push('bg-indigo-600 dark:bg-indigo-500 text-white rounded-r-full');
-          } else if (selectionType === 'range' && isInRange) {
+          } else if (isInRange) {
             dayClasses.push('bg-indigo-200 dark:bg-indigo-700 text-indigo-800 dark:text-indigo-100 rounded-none');
-          } else if (isSelected) { // Single day or week selection
+          } else if (isSelected) {
             dayClasses.push('bg-indigo-600 dark:bg-indigo-500 text-white rounded-full');
           } else {
             // Default hover state if not selected/ranged
-            dayClasses.push('hover:bg-gray-100 dark:hover:bg-slate-700');
+            dayClasses.push('hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full');
           }
 
-          if (isToday && (!isSelected && !isInRange && !isRangeStart && !isRangeEnd)) {
-            dayClasses.push('border border-indigo-500');
+          if (isToday && !isSelected && !isInRange && !isRangeStart && !isRangeEnd) {
+            dayClasses.push('border border-indigo-500 rounded-full');
           }
           
           const finalDayClasses = dayClasses.join(' ');
