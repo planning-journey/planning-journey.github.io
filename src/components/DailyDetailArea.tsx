@@ -120,6 +120,8 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate }) => {
           setTaskToView(null);
         }}
         task={taskToView}
+        onEditTask={handleEditTask} // Pass handleEditTask to detail modal
+        onDeleteTask={handleDeleteTask} // Pass handleDeleteTask to detail modal
       />
     </div>
   );

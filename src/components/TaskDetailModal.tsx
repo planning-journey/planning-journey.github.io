@@ -2,16 +2,18 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { db, type Task, type Goal } from '../db';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { XCircle, CalendarDays, Tag } from 'lucide-react';
+import { CalendarDays, Tag, Edit, Trash, X } from 'lucide-react'; // Import Edit, Trash, X icons
 import { parseYYYYMMDDToDate } from '../utils/dateUtils';
 
 interface TaskDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   task: Task | null;
+  onEditTask: (task: Task) => void;   // New prop for editing
+  onDeleteTask: (taskId: number) => void; // New prop for deleting
 }
 
-const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task }) => {
+const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task, onEditTask, onDeleteTask }) => {
   const goal = useLiveQuery(() => (task?.goalId ? db.goals.get(task.goalId) : undefined), [task?.goalId]);
 
   if (!isOpen || !task) return null;
@@ -19,6 +21,16 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
   const formatDateForDisplay = (dateString: string) => {
     const date = parseYYYYMMDDToDate(dateString);
     return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
+  };
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent closing modal
+    onEditTask(task);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent closing modal
+    onDeleteTask(task.id!);
   };
 
   return (
@@ -32,9 +44,25 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
       >
         <div className="flex justify-between items-start mb-4">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">할 일 상세</h2>
-          <button onClick={onClose} className="text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-white transition-colors text-2xl leading-none">
-            <XCircle className="h-7 w-7" />
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handleEditClick}
+              className="p-2 rounded-lg text-gray-400 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200"
+              title="수정"
+            >
+              <Edit className="h-5 w-5" />
+            </button>
+            <button
+              onClick={handleDeleteClick}
+              className="p-2 rounded-lg text-gray-400 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200"
+              title="삭제"
+            >
+              <Trash className="h-5 w-5" />
+            </button>
+            <button onClick={onClose} className="text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-white transition-colors text-2xl leading-none">
+              <X className="h-6 w-6" />
+            </button>
+          </div>
         </div>
 
         <div className="space-y-4 text-gray-800 dark:text-slate-200">
@@ -69,15 +97,6 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
               </div>
             </div>
           )}
-        </div>
-
-        <div className="flex justify-end mt-6">
-          <button
-            onClick={onClose}
-            className="px-5 py-3 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-500 transition-all duration-300 shadow-md"
-          >
-            닫기
-          </button>
         </div>
       </div>
     </div>
