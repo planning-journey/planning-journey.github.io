@@ -35,7 +35,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onView, onEdit, onDelete, onT
 
   return (
     <div
-      className="flex items-start justify-between rounded-none py-2 pr-1 pl-3 cursor-pointer relative group"
+      className="flex flex-col items-stretch rounded-none py-2 pr-1 pl-3 cursor-pointer relative group"
       onClick={() => onView(task)} // Open detail modal on main div click
     >
       <div className="flex items-center gap-3 flex-grow">
@@ -57,13 +57,14 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onView, onEdit, onDelete, onT
           <span className={`font-medium text-gray-900 dark:text-white ${task.completed ? 'line-through text-gray-400 dark:text-slate-500' : ''}`}>
             {task.text}
           </span>
-          {task.description && (
-            <p className="text-sm text-gray-600 dark:text-slate-400 mt-0.5 whitespace-pre-wrap">
-              {task.description}
-            </p>
-          )}
         </div>
       </div>
+
+      {task.description && (
+        <p className="text-sm text-gray-600 dark:text-slate-400 mt-0.5 whitespace-pre-wrap pl-8 line-clamp-3">
+          {task.description}
+        </p>
+      )}
     </div>
   );
 };
