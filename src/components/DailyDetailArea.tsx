@@ -58,7 +58,7 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate }) => {
   };
 
   return (
-    <div className="flex flex-col bg-white dark:bg-slate-800 flex-1">
+    <div className="flex flex-col bg-slate-50 dark:bg-slate-800 flex-1">
       <div className="flex-1 overflow-y-auto">
         {/* 할 일 목록 표시 공간 */}
         <TaskList

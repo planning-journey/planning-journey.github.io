@@ -20,7 +20,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onEdit, onDelete, onToggleCom
   };
 
   return (
-    <div className="flex items-center justify-between rounded-none bg-white py-2 px-1 dark:bg-slate-800 transition-all duration-300">
+    <div className="flex items-center justify-between rounded-none py-2 pr-1 pl-3  transition-all duration-300">
       <div className="flex items-center gap-3">
         <Checkbox
           checked={task.completed}

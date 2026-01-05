@@ -16,7 +16,7 @@ const EvaluationHeader = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900/70 backdrop-blur-sm border-t border-slate-200/50">
+    <div className="bg-white dark:bg-slate-900/70 backdrop-blur-sm border-t border-slate-200/50 dark:border-slate-700">
       <div className="flex items-center justify-between p-4 cursor-pointer" onClick={toggleOpen}>
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold text-slate-800 dark:text-white">Evaluation</h2>

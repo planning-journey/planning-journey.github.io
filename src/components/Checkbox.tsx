@@ -16,7 +16,7 @@ const Checkbox: React.FC<CheckboxProps> = ({ checked, onChange, className }) => 
       onClick={() => onChange(!checked)}
       className={`
         relative flex items-center justify-center
-        h-6 w-6 rounded-xl border
+        h-4.5 w-4.5 rounded-xl border
         transition-all duration-300
         ${checked
           ? 'bg-indigo-600 border-indigo-600 shadow-md'
@@ -26,7 +26,7 @@ const Checkbox: React.FC<CheckboxProps> = ({ checked, onChange, className }) => 
       `}
     >
       {checked && (
-        <Check className="h-4 w-4 text-white" strokeWidth={3} />
+        <Check className="h-3 w-3 text-white" strokeWidth={2} />
       )}
       <input
         type="checkbox"
