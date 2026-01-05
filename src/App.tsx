@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import Header from './components/Header';
 import GoalManagementModal from './components/GoalManagementModal';
@@ -39,6 +39,7 @@ function App() {
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [currentTaskText, setCurrentTaskText] = useState('');
   const [selectedGoalId, setSelectedGoalId] = useState<number | null>(null);
+  const dailyDetailFormInputRef = useRef<HTMLInputElement>(null);
 
   const formattedSelectedDate = formatDateToYYYYMMDD(selectedDate); // Define formattedSelectedDate here
 
@@ -60,7 +61,10 @@ function App() {
     };
     await db.tasks.add(newTask);
     setCurrentTaskText('');
-  }, [currentTaskText, formattedSelectedDate]);
+    if (dailyDetailFormInputRef.current) {
+      dailyDetailFormInputRef.current.focus();
+    }
+  }, [currentTaskText, formattedSelectedDate, dailyDetailFormInputRef]);
 
   const handleDateSelect = useCallback((date: Date) => {
     setSelectedDate(date);
@@ -160,7 +164,7 @@ function App() {
 
         <div className="sticky bottom-0 z-10 bg-white dark:bg-slate-900 shadow-lg">
           {/* DailyDetailForm moved here, before EvaluationHeader */}
-          <DailyDetailForm onAddTask={handleAddTask} selectedDate={selectedDate} />
+          <DailyDetailForm onAddTask={handleAddTask} selectedDate={selectedDate} ref={dailyDetailFormInputRef} />
           <EvaluationHeader />
         </div>
 

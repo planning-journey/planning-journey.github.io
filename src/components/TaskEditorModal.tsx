@@ -21,7 +21,6 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
   const [isDateSelectorModalOpen, setIsDateSelectorModalOpen] = useState(false);
   const allGoals = useLiveQuery(() => db.goals.toArray(), []);
   const textareaRef = useRef<HTMLTextAreaElement>(null); // Ref for textarea
-  const taskTextInputRef = useRef<HTMLInputElement>(null); // Ref for task text input
 
   useEffect(() => {
     if (taskToEdit) {
@@ -55,7 +54,7 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
     const updatedTask: Task = {
       ...taskToEdit,
       text: taskText,
-      description: description,
+      description: description, // Include description in updated task
       date: selectedDate,
       goalId: selectedGoalId === undefined ? null : selectedGoalId,
       completed: taskToEdit?.completed || false,
@@ -63,19 +62,7 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
     };
 
     onSave(updatedTask);
-
-    // If it's a new task, clear the form and refocus the input for continuous entry
-    if (!taskToEdit) {
-      setTaskText('');
-      setDescription('');
-      setSelectedGoalId(undefined); // Clear selected goal
-      if (taskTextInputRef.current) {
-        taskTextInputRef.current.focus();
-      }
-    } else {
-      // If it's an existing task being edited, close the modal
-      onClose();
-    }
+    onClose();
   };
 
   const handleSelectGoal = (goalId: number | null | undefined) => {
@@ -153,7 +140,6 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
               <input
                 type="text"
                 id="taskText"
-                ref={taskTextInputRef} // Attach ref here
                 value={taskText}
                 onChange={(e) => setTaskText(e.target.value)}
                 className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"

@@ -1,12 +1,9 @@
-import { Plus } from 'lucide-react';
-import React, { useState } from 'react';
-
 interface DailyDetailFormProps {
   onAddTask: (itemText: string) => void;
   selectedDate: Date;
 }
 
-const DailyDetailForm: React.FC<DailyDetailFormProps> = ({ onAddTask }) => {
+const DailyDetailForm = React.forwardRef<HTMLInputElement, DailyDetailFormProps>(({ onAddTask }, ref) => {
   const [taskText, setTaskText] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -22,6 +19,7 @@ const DailyDetailForm: React.FC<DailyDetailFormProps> = ({ onAddTask }) => {
       <div className="flex gap-2">
         <input
           type="text"
+          ref={ref} // Attach the forwarded ref here
           className="flex-grow px-4 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
           placeholder="일일 할 일 추가..."
           value={taskText}
@@ -36,6 +34,6 @@ const DailyDetailForm: React.FC<DailyDetailFormProps> = ({ onAddTask }) => {
       </div>
     </form>
   );
-};
+});
 
 export default DailyDetailForm;
