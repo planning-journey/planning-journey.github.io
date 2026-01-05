@@ -47,20 +47,20 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
           <div className="flex items-center space-x-2">
             <button
               onClick={handleEditClick}
-              className="p-2 rounded-lg text-gray-400 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200"
+              className="cursor-pointer p-2 rounded-lg text-gray-400 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200"
               title="수정"
             >
-              <Edit className="h-5 w-5" />
+              <Edit className="h-4 w-4" />
             </button>
             <button
               onClick={handleDeleteClick}
-              className="p-2 rounded-lg text-gray-400 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200"
+              className="cursor-pointer p-2 rounded-lg text-gray-400 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200"
               title="삭제"
             >
-              <Trash className="h-5 w-5" />
+              <Trash className="h-4 w-4" />
             </button>
-            <button onClick={onClose} className="text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-white transition-colors text-2xl leading-none">
-              <X className="h-6 w-6" />
+            <button onClick={onClose} className="cursor-pointer text-gray-400 p-2 dark:text-slate-400 hover:text-gray-600 dark:hover:text-white transition-colors text-2xl leading-none">
+              <X className="h-4 w-4" />
             </button>
           </div>
         </div>
