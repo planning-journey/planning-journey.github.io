@@ -1,27 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import DailyDetailForm from './DailyDetailForm';
-import GoalSelectionBottomSheet from './GoalSelectionBottomSheet';
 import TaskList from './TaskList'; // Import TaskList
 import { db, type Task } from '../db';
 import TaskEditorModal from './TaskEditorModal'; // Import TaskEditorModal
 import TaskDetailModal from './TaskDetailModal'; // Import TaskDetailModal
-import { formatDateToYYYYMMDD } from '../utils/dateUtils'; // Assuming a date utility
 
 interface DailyDetailAreaProps {
   selectedDate: Date;
+  formattedSelectedDate: string; // Add formattedSelectedDate to props
 }
 
-const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate }) => {
-  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
-  const [currentTaskText, setCurrentTaskText] = useState('');
-  const [selectedGoalId, setSelectedGoalId] = useState<number | null>(null);
-  const [isTaskEditorModalOpen, setIsTaskEditorModalOpen] = useState(false); // State for TaskEditorModal
-  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null); // State for task being edited
-  const [isTaskDetailModalOpen, setIsTaskDetailModalOpen] = useState(false); // State for TaskDetailModal
-  const [taskToView, setTaskToView] = useState<Task | null>(null); // State for task being viewed
-
-  const formattedSelectedDate = formatDateToYYYYMMDD(selectedDate);
+const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate, formattedSelectedDate }) => {
+  // States related to task editing/viewing, not moved
+  const [isTaskEditorModalOpen, setIsTaskEditorModalOpen] = React.useState(false); // State for TaskEditorModal
+  const [taskToEdit, setTaskToEdit] = React.useState<Task | null>(null); // State for task being edited
+  const [isTaskDetailModalOpen, setIsTaskDetailModalOpen] = React.useState(false); // State for TaskDetailModal
+  const [taskToView, setTaskToView] = React.useState<Task | null>(null); // State for task being viewed
 
   const tasks = useLiveQuery(() =>
     db.tasks
@@ -30,26 +24,6 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate }) => {
       .toArray(),
     [formattedSelectedDate] // Re-run query when formattedSelectedDate changes
   );
-
-  const handleAddTask = (text: string) => {
-    setCurrentTaskText(text);
-    setIsBottomSheetOpen(true);
-  };
-
-  const handleSelectGoal = async (goalId: number | null) => {
-    setSelectedGoalId(goalId);
-    setIsBottomSheetOpen(false);
-
-    const newTask: Task = {
-      text: currentTaskText,
-      goalId: goalId,
-      completed: false,
-      date: formattedSelectedDate, // Use the formattedSelectedDate for new tasks
-      createdAt: new Date(), // Set createdAt to current timestamp
-    };
-    await db.tasks.add(newTask);
-    setCurrentTaskText(''); // Clear current task text after adding
-  };
 
   const handleEditTask = (task: Task) => {
     setTaskToEdit(task);
@@ -92,18 +66,9 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate }) => {
         <TaskList
           tasks={tasks || []}
           onViewTaskDetail={handleViewTaskDetail} // Pass handler for viewing task details
-
-
           onToggleTaskComplete={handleToggleTaskComplete}
         />
       </div>
-      <DailyDetailForm onAddTask={handleAddTask} selectedDate={selectedDate} />
-      <GoalSelectionBottomSheet
-        isOpen={isBottomSheetOpen}
-        onClose={() => setIsBottomSheetOpen(false)}
-        onSelectGoal={handleSelectGoal}
-        selectedGoalId={selectedGoalId}
-      />
       <TaskEditorModal
         isOpen={isTaskEditorModalOpen}
         onClose={() => {

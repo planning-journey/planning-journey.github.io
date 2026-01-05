@@ -8,8 +8,11 @@ import OngoingGoalsHeader from './components/OngoingGoalsHeader';
 import GoalDetailModal from './components/GoalDetailModal';
 import DailyDetailArea from './components/DailyDetailArea';
 import EvaluationHeader from './components/EvaluationHeader';
+import DailyDetailForm from './components/DailyDetailForm'; // Import DailyDetailForm
+import GoalSelectionBottomSheet from './components/GoalSelectionBottomSheet'; // Import GoalSelectionBottomSheet
 import { ThemeProvider } from './contexts/ThemeContext';
-import { db, type Goal } from './db';
+import { db, type Goal, type Task } from './db';
+import { formatDateToYYYYMMDD } from './utils/dateUtils'; // Import formatDateToYYYYMMDD
 
 // Helper function to check if two dates are in the same month and year
 const isSameMonthYear = (d1: Date, d2: Date) => {
@@ -31,6 +34,33 @@ function App() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentCalendarViewDate, setCurrentCalendarViewDate] = useState<Date>(new Date());
   const [todayScrollTrigger, setTodayScrollTrigger] = useState(0);
+
+  // States lifted from DailyDetailArea
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const [currentTaskText, setCurrentTaskText] = useState('');
+  const [selectedGoalId, setSelectedGoalId] = useState<number | null>(null);
+
+  const formattedSelectedDate = formatDateToYYYYMMDD(selectedDate); // Define formattedSelectedDate here
+
+  const handleAddTask = useCallback((text: string) => {
+    setCurrentTaskText(text);
+    setIsBottomSheetOpen(true);
+  }, []);
+
+  const handleSelectGoal = useCallback(async (goalId: number | null) => {
+    setSelectedGoalId(goalId);
+    setIsBottomSheetOpen(false);
+
+    const newTask: Task = {
+      text: currentTaskText,
+      goalId: goalId,
+      completed: false,
+      date: formattedSelectedDate,
+      createdAt: new Date(),
+    };
+    await db.tasks.add(newTask);
+    setCurrentTaskText('');
+  }, [currentTaskText, formattedSelectedDate]);
 
   const handleDateSelect = useCallback((date: Date) => {
     setSelectedDate(date);
@@ -107,25 +137,30 @@ function App() {
   return (
     <ThemeProvider>
       <div className="font-sans text-gray-900 dark:text-white min-h-screen bg-gray-100 dark:bg-slate-900 flex flex-col">
-        <Header
-          onOpenModal={openGoalManagementModal}
-          onDateSelect={handleDateSelect}
-          currentCalendarViewDate={currentCalendarViewDate}
-          onCalendarViewChange={handleCalendarViewChange}
-          onSelectToday={handleSelectToday}
-          selectedDate={selectedDate}
-          todayScrollTrigger={todayScrollTrigger}
-        />
-        <main className="flex-1 overflow-y-auto flex flex-col items-stretch">
+        <div className="sticky top-0 z-10">
+          <Header
+            onOpenModal={openGoalManagementModal}
+            onDateSelect={handleDateSelect}
+            currentCalendarViewDate={currentCalendarViewDate}
+            onCalendarViewChange={handleCalendarViewChange}
+            onSelectToday={handleSelectToday}
+            selectedDate={selectedDate}
+            todayScrollTrigger={todayScrollTrigger}
+          />
           <OngoingGoalsHeader
             goals={goals}
             selectedDate={selectedDate}
             onGoalSelect={openGoalDetailModal}
           />
-          <DailyDetailArea selectedDate={selectedDate}/>
+        </div>
+
+        <main className="flex-1 overflow-y-auto flex flex-col items-stretch">
+          <DailyDetailArea selectedDate={selectedDate} formattedSelectedDate={formattedSelectedDate} />
         </main>
 
         <div className="sticky bottom-0 z-10 bg-white dark:bg-slate-900 shadow-lg">
+          {/* DailyDetailForm moved here, before EvaluationHeader */}
+          <DailyDetailForm onAddTask={handleAddTask} selectedDate={selectedDate} />
           <EvaluationHeader />
         </div>
 
@@ -150,6 +185,12 @@ function App() {
           isOpen={isGoalDetailModalOpen}
           onClose={closeGoalDetailModal}
           goal={goalForDetail}
+        />
+        <GoalSelectionBottomSheet
+          isOpen={isBottomSheetOpen}
+          onClose={() => setIsBottomSheetOpen(false)}
+          onSelectGoal={handleSelectGoal}
+          selectedGoalId={selectedGoalId}
         />
       </div>
     </ThemeProvider>
