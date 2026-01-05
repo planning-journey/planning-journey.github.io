@@ -3,6 +3,7 @@ import Header from './components/Header';
 import GoalManagementModal from './components/GoalManagementModal';
 import GoalEditorModal from './components/GoalEditorModal';
 import ConfirmDeleteModal from './components/ConfirmDeleteModal'; // New: Import ConfirmDeleteModal
+import OngoingGoalsHeader from './components/OngoingGoalsHeader';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { db, type Goal } from './db'; // New: Import db and Goal type
 
@@ -87,9 +88,12 @@ function App() {
           onSelectToday={handleSelectToday} // Pass new handler
           selectedDate={selectedDate} // Pass selectedDate state
         />
-        <main className="p-8">
-          <h1 className="text-4xl font-bold text-gray-800 dark:text-white">Welcome to Planning Journey</h1>
-          <p className="text-gray-600 dark:text-slate-400 mt-2">Your journey starts here. Define your goals and track your progress.</p>
+        <main>
+          <OngoingGoalsHeader />
+          <div className="p-8">
+            <h1 className="text-4xl font-bold text-gray-800 dark:text-white">Welcome to Planning Journey</h1>
+            <p className="text-gray-600 dark:text-slate-400 mt-2">Your journey starts here. Define your goals and track your progress.</p>
+          </div>
         </main>
         
         <GoalManagementModal 
@@ -98,11 +102,6 @@ function App() {
           onAddNewGoal={openNewGoalEditorModal} // Updated to new function
           onEditGoal={openEditGoalEditorModal} // New prop
           onDeleteGoal={openConfirmDeleteModal} // New prop
-        />
-        <GoalEditorModal 
-          isOpen={isGoalEditorModalOpen} 
-          onClose={closeGoalEditorModal}
-          goalToEdit={goalToEdit} // New prop
         />
         <ConfirmDeleteModal
           isOpen={isConfirmDeleteModalOpen}
