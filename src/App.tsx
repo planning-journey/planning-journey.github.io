@@ -5,6 +5,7 @@ import GoalManagementModal from './components/GoalManagementModal';
 import GoalEditorModal from './components/GoalEditorModal';
 import ConfirmDeleteModal from './components/ConfirmDeleteModal';
 import OngoingGoalsHeader from './components/OngoingGoalsHeader';
+import GoalDetailModal from './components/GoalDetailModal'; // Import the new modal
 import { ThemeProvider } from './contexts/ThemeContext';
 import { db, type Goal } from './db';
 
@@ -14,9 +15,11 @@ function App() {
   const [isGoalManagementModalOpen, setGoalManagementModalOpen] = useState(false);
   const [isGoalEditorModalOpen, setGoalEditorModalOpen] = useState(false);
   const [isConfirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState(false);
+  const [isGoalDetailModalOpen, setGoalDetailModalOpen] = useState(false); // State for new modal
 
   const [goalToEdit, setGoalToEdit] = useState<Goal | null>(null);
   const [goalToDeleteId, setGoalToDeleteId] = useState<number | null>(null);
+  const [goalForDetail, setGoalForDetail] = useState<Goal | null>(null); // State for goal to show in detail
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentMonthYear, setCurrentMonthYear] = useState('');
   const [todayScrollTrigger, setTodayScrollTrigger] = useState(0);
@@ -68,6 +71,17 @@ function App() {
     setGoalToDeleteId(null);
   };
 
+  // Handlers for GoalDetailModal
+  const openGoalDetailModal = (goal: Goal) => {
+    setGoalForDetail(goal);
+    setGoalDetailModalOpen(true);
+  };
+
+  const closeGoalDetailModal = () => {
+    setGoalDetailModalOpen(false);
+    setGoalForDetail(null);
+  };
+
   const handleConfirmDelete = async () => {
     if (goalToDeleteId !== null) {
       try {
@@ -92,7 +106,11 @@ function App() {
           todayScrollTrigger={todayScrollTrigger}
         />
         <main>
-          <OngoingGoalsHeader goals={goals} selectedDate={selectedDate} />
+          <OngoingGoalsHeader 
+            goals={goals} 
+            selectedDate={selectedDate} 
+            onGoalSelect={openGoalDetailModal} 
+          />
           <div>
             <h1 className="text-4xl font-bold text-gray-800 dark:text-white">Welcome to Planning Journey</h1>
             <p className="text-gray-600 dark:text-slate-400 mt-2">Your journey starts here. Define your goals and track your progress.</p>
@@ -116,9 +134,12 @@ function App() {
           onClose={closeConfirmDeleteModal}
           onConfirm={handleConfirmDelete}
         />
+        <GoalDetailModal
+          isOpen={isGoalDetailModalOpen}
+          onClose={closeGoalDetailModal}
+          goal={goalForDetail}
+        />
       </div>
     </ThemeProvider>
   );
 }
-
-export default App;

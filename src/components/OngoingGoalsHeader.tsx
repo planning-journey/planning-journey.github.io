@@ -6,6 +6,7 @@ import GoalList from './GoalList';
 interface OngoingGoalsHeaderProps {
   goals: Goal[] | undefined;
   selectedDate: Date;
+  onGoalSelect?: (goal: Goal) => void;
 }
 
 const isUrgentGoal = (endDate: Date): boolean => {
@@ -18,12 +19,12 @@ const isUrgentGoal = (endDate: Date): boolean => {
   const diffTime = end.getTime() - today.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  // Urgent if diffDays is between -Infinity and 7 (inclusive)
-  return diffDays <= 7;
+  // Urgent if diffDays is between 0 and 7 (inclusive)
+  return diffDays >= 0 && diffDays <= 7;
 };
 
 
-const OngoingGoalsHeader = ({ goals, selectedDate }: OngoingGoalsHeaderProps) => {
+const OngoingGoalsHeader = ({ goals, selectedDate, onGoalSelect }: OngoingGoalsHeaderProps) => {
   const [isOpen, setIsOpen] = useState(() => {
     const savedState = localStorage.getItem('ongoingGoalsOpen');
     return savedState !== null ? JSON.parse(savedState) : true;
@@ -44,6 +45,9 @@ const OngoingGoalsHeader = ({ goals, selectedDate }: OngoingGoalsHeaderProps) =>
     const startOfDay = new Date(selectedDate);
     startOfDay.setHours(0, 0, 0, 0);
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     return goals
       .filter(goal => {
         const startDate = new Date(goal.startDate);
@@ -51,7 +55,7 @@ const OngoingGoalsHeader = ({ goals, selectedDate }: OngoingGoalsHeaderProps) =>
         const endDate = new Date(goal.endDate);
         endDate.setHours(0, 0, 0, 0);
 
-        return startDate <= startOfDay && startOfDay <= endDate;
+        return startDate <= startOfDay && startOfDay <= endDate && endDate >= today;
       })
       .sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
   }, [goals, selectedDate]);
@@ -79,7 +83,7 @@ const OngoingGoalsHeader = ({ goals, selectedDate }: OngoingGoalsHeaderProps) =>
           종료일이 임박한 {urgentGoals.length}개의 목표가 있습니다.
         </div>
       )}
-      {isOpen && <GoalList goals={filteredGoals} />}
+      {isOpen && <GoalList goals={filteredGoals} onGoalSelect={onGoalSelect} />}
     </div>
   );
 };
