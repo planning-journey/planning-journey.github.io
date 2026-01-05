@@ -33,6 +33,8 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  const lastScrolledSelectedDateRef = useRef<Date | null>(null); // To track the last selectedDateProp that caused a scroll
+
   // Conceptual total range of dates
   const START_YEAR = 1900;
   const END_YEAR = 2100;
@@ -99,11 +101,12 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
 
   // Effect to scroll to selectedDateProp when it changes (user clicks a date or 'Today')
   useEffect(() => {
-    // Only scroll to selectedDateProp if its month/year is different from the current view date's month/year
-    if (!isSameMonthYear(selectedDateProp, currentViewDateProp)) {
+    // Only scroll if selectedDateProp has genuinely changed its date value
+    if (!lastScrolledSelectedDateRef.current || !isSameDay(selectedDateProp, lastScrolledSelectedDateRef.current)) {
       scrollToDate(selectedDateProp);
+      lastScrolledSelectedDateRef.current = selectedDateProp;
     }
-  }, [selectedDateProp, scrollToDate, currentViewDateProp]);
+  }, [selectedDateProp, scrollToDate]);
   
   // Effect to scroll to today when todayScrollTrigger changes
   useEffect(() => {
@@ -144,7 +147,9 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
   // Initial scroll on mount: to selectedDateProp if available, else today
   useLayoutEffect(() => {
     if (scrollRef.current && totalDays > 0) {
-      scrollToDate(selectedDateProp || new Date(), 'auto'); // Scroll instantly on initial load
+      // On initial load, scroll to selectedDateProp, or today if no selected date
+      scrollToDate(selectedDateProp || new Date(), 'auto');
+      lastScrolledSelectedDateRef.current = selectedDateProp || new Date(); // Initialize ref on mount
     }
   }, [totalDays, scrollToDate, selectedDateProp]);
 
