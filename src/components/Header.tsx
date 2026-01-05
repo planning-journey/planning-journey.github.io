@@ -116,8 +116,9 @@ const Header = ({ onOpenModal, onDateSelect, currentCalendarViewDate, onCalendar
       </div>
       <InlineCalendar 
         onDateSelect={onDateSelect} 
-        onViewChange={onCalendarViewChange} // Renamed prop
+        onViewChange={onCalendarViewChange}
         selectedDateProp={selectedDate} 
+        currentViewDateProp={currentCalendarViewDate} // Pass currentCalendarViewDate to InlineCalendar
         todayScrollTrigger={todayScrollTrigger} 
       />
     </header>

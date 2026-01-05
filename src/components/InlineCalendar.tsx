@@ -5,6 +5,7 @@ interface InlineCalendarProps {
   onDateSelect: (date: Date) => void;
   onViewChange: (date: Date) => void; // New prop for reporting current view date
   selectedDateProp: Date;
+  currentViewDateProp: Date; // New prop for the calendar's currently viewed date (from App.tsx)
   todayScrollTrigger: number;
 }
 
@@ -21,8 +22,14 @@ const isSameDay = (d1: Date, d2: Date) => {
          d1.getDate() === d2.getDate();
 };
 
+// Helper function to check if two dates are in the same month and year
+const isSameMonthYear = (d1: Date, d2: Date) => {
+  return d1.getFullYear() === d2.getFullYear() &&
+         d1.getMonth() === d2.getMonth();
+};
 
-const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewChange, selectedDateProp, todayScrollTrigger }) => {
+
+const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewChange, selectedDateProp, currentViewDateProp, todayScrollTrigger }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -92,8 +99,11 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
 
   // Effect to scroll to selectedDateProp when it changes (user clicks a date or 'Today')
   useEffect(() => {
-    scrollToDate(selectedDateProp);
-  }, [selectedDateProp, scrollToDate]);
+    // Only scroll to selectedDateProp if its month/year is different from the current view date's month/year
+    if (!isSameMonthYear(selectedDateProp, currentViewDateProp)) {
+      scrollToDate(selectedDateProp);
+    }
+  }, [selectedDateProp, scrollToDate, currentViewDateProp]);
   
   // Effect to scroll to today when todayScrollTrigger changes
   useEffect(() => {

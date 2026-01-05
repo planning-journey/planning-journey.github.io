@@ -115,6 +115,7 @@ function App() {
           onCalendarViewChange={handleCalendarViewChange}
           onSelectToday={handleSelectToday}
           selectedDate={selectedDate}
+          currentViewDateProp={currentCalendarViewDate} // Pass currentCalendarViewDate to Header to forward to InlineCalendar
           todayScrollTrigger={todayScrollTrigger}
         />
         <main className="flex-grow overflow-y-auto"> {/* Main content area takes remaining space and scrolls */}
