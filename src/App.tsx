@@ -9,7 +9,7 @@ import GoalDetailModal from './components/GoalDetailModal';
 import DailyDetailArea from './components/DailyDetailArea';
 import EvaluationHeader from './components/EvaluationHeader';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { db, Goal } from './db'; // Corrected import: removed 'type' keyword
+import { db, type Goal } from './db';
 
 // Helper function to check if two dates are in the same month and year
 const isSameMonthYear = (d1: Date, d2: Date) => {
@@ -114,7 +114,6 @@ function App() {
           onCalendarViewChange={handleCalendarViewChange}
           onSelectToday={handleSelectToday}
           selectedDate={selectedDate}
-          currentViewDateProp={currentCalendarViewDate}
           todayScrollTrigger={todayScrollTrigger}
         />
         <main className="flex-1 overflow-y-auto flex flex-col items-stretch">

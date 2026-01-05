@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MoreVertical } from 'lucide-react';
-import { db, Task, Goal } from '../db';
+import Checkbox from './Checkbox';
+import { db, type Task, type Goal } from '../db';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 interface TaskItemProps {
@@ -21,11 +22,10 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onEdit, onDelete, onToggleCom
   return (
     <div className="flex items-center justify-between rounded-none bg-white py-2 px-1 dark:bg-slate-800 transition-all duration-300">
       <div className="flex items-center gap-3">
-        <input
-          type="checkbox"
+        <Checkbox
           checked={task.completed}
           onChange={handleToggleComplete}
-          className="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-700"
+          className="h-5 w-5"
         />
         <div>
           {goal && (

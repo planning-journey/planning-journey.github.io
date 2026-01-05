@@ -19,12 +19,6 @@ const isSameDay = (date1: Date | null, date2: Date | null) => {
          date1.getMonth() === date2.getMonth() &&
          date1.getDate() === date2.getDate();
 };
-const isSameWeek = (date1: Date | null, date2: Date | null, weekStartsOn: 0 | 1 = 0) => {
-  if (!date1 || !date2) return false;
-  const startOfWeek1 = getStartOfWeek(date1, weekStartsOn);
-  const startOfWeek2 = getStartOfWeek(date2, weekStartsOn);
-  return isSameDay(startOfWeek1, startOfWeek2);
-};
 const isBetween = (date: Date | null, start: Date | null, end: Date | null) => {
   if (!date || !start || !end) return false;
   const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();

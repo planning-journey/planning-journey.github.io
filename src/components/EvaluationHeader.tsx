@@ -1,10 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 
-interface EvaluationHeaderProps {
-  // Add props if needed later, e.g., for data
-}
-
 const EvaluationHeader = () => {
   const [isOpen, setIsOpen] = useState(() => {
     const savedState = localStorage.getItem('evaluationHeaderOpen');
@@ -18,15 +14,6 @@ const EvaluationHeader = () => {
   const toggleOpen = () => {
     setIsOpen((prev: boolean) => !prev);
   };
-
-  // The content of the Evaluation section (e.g., list of evaluations)
-  // will go here once the toggle state is implemented.
-  const EvaluationContent = () => (
-    <div className="p-4 text-sm text-slate-700 dark:text-slate-300">
-      {/* Placeholder for evaluation content */}
-      <p>평가 내용이 여기에 표시됩니다.</p>
-    </div>
-  );
 
   return (
     <div className="bg-white dark:bg-slate-900/70 backdrop-blur-sm border-t border-slate-200/50">

@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import DailyDetailForm from './DailyDetailForm';
 import GoalSelectionBottomSheet from './GoalSelectionBottomSheet';
 import TaskList from './TaskList'; // Import TaskList
-import { db, Task } from '../db'; // Import Task interface
+import { db, type Task } from '../db';
 
 interface DailyDetailAreaProps {
   selectedDate: Date;

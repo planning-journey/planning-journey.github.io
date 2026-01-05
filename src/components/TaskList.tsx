@@ -1,5 +1,5 @@
 import React from 'react';
-import { Task } from '../db';
+import { type Task } from '../db';
 import TaskItem from './TaskItem';
 
 interface TaskListProps {
