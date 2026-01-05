@@ -10,13 +10,26 @@ export interface Goal {
   createdAt: Date;
 }
 
+export interface Task {
+  id?: number;
+  text: string;
+  goalId: number | null;
+  completed: boolean;
+  createdAt: Date;
+}
+
 export class MySubClassedDexie extends Dexie {
   goals!: Table<Goal>; 
+  tasks!: Table<Task>;
 
   constructor() {
     super('planningJourneyDB');
     this.version(2).stores({
       goals: '++id, name, startDate, endDate, createdAt' // Primary key and indexed props
+    });
+    this.version(3).stores({
+      goals: '++id, name, startDate, endDate, createdAt',
+      tasks: '++id, goalId, createdAt'
     });
   }
 }
