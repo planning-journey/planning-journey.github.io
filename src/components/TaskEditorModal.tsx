@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { db, type Task, type Goal } from '../db';
-import Calendar from './Calendar';
 import { useLiveQuery } from 'dexie-react-hooks';
 import GoalAutocomplete from './GoalAutocomplete';
-import DateSelectorModal from './DateSelectorModal'; // Import DateSelectorModal
-import { Calendar as CalendarIcon } from 'lucide-react'; // Import Calendar icon from lucide-react
+import DateSelectorModal from './DateSelectorModal';
+import { Calendar as CalendarIcon } from 'lucide-react';
 import { formatDateToYYYYMMDD, parseYYYYMMDDToDate } from '../utils/dateUtils';
 
 interface TaskEditorModalProps {
@@ -16,22 +15,34 @@ interface TaskEditorModalProps {
 
 const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, taskToEdit, onSave }) => {
   const [taskText, setTaskText] = useState('');
+  const [description, setDescription] = useState(''); // Add description state
   const [selectedDate, setSelectedDate] = useState<string | null>(formatDateToYYYYMMDD(new Date()));
   const [selectedGoalId, setSelectedGoalId] = useState<number | undefined>(undefined);
-  const [isDateSelectorModalOpen, setIsDateSelectorModalOpen] = useState(false); // New state for date selector modal
+  const [isDateSelectorModalOpen, setIsDateSelectorModalOpen] = useState(false);
   const allGoals = useLiveQuery(() => db.goals.toArray(), []);
+  const textareaRef = useRef<HTMLTextAreaElement>(null); // Ref for textarea
 
   useEffect(() => {
     if (taskToEdit) {
       setTaskText(taskToEdit.text);
-      setSelectedDate(taskToEdit.date); // Use the date string directly
+      setDescription(taskToEdit.description || ''); // Initialize description
+      setSelectedDate(taskToEdit.date);
       setSelectedGoalId(taskToEdit.goalId);
     } else {
       setTaskText('');
-      setSelectedDate(formatDateToYYYYMMDD(new Date())); // Default to today's date
+      setDescription(''); // Reset description
+      setSelectedDate(formatDateToYYYYMMDD(new Date()));
       setSelectedGoalId(undefined);
     }
   }, [taskToEdit]);
+
+  // Effect for dynamic textarea height
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    }
+  }, [description, isOpen]); // Adjust height when description changes or modal opens
 
   if (!isOpen) return null;
 
@@ -43,7 +54,8 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
     const updatedTask: Task = {
       ...taskToEdit,
       text: taskText,
-      date: selectedDate, // Use the date string directly
+      description: description, // Include description in updated task
+      date: selectedDate,
       goalId: selectedGoalId,
       completed: taskToEdit?.completed || false,
       createdAt: taskToEdit?.createdAt || new Date(),
@@ -62,7 +74,7 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
   };
 
   const handleSelectNewDate = (date: Date) => {
-    setSelectedDate(formatDateToYYYYMMDD(date)); // Convert Date object to YYYY-MM-DD string
+    setSelectedDate(formatDateToYYYYMMDD(date));
     setIsDateSelectorModalOpen(false);
   };
 
@@ -134,6 +146,22 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
                 placeholder="예: 보고서 작성"
                 required
               />
+            </div>
+            
+            {/* Description Textarea */}
+            <div>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                설명
+              </label>
+              <textarea
+                ref={textareaRef}
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={1} // Start with 1 row, height will be adjusted by JS
+                className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 overflow-hidden resize-none"
+                placeholder="자세한 내용을 입력하세요"
+              ></textarea>
             </div>
           </div>
 

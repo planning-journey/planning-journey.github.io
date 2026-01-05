@@ -16,6 +16,7 @@ export interface Task {
   goalId: number | null;
   completed: boolean;
   date: string; // YYYY-MM-DD format
+  description?: string; // Optional description for the task
   createdAt: Date;
 }
 
@@ -35,6 +36,10 @@ export class MySubClassedDexie extends Dexie {
     this.version(4).stores({
       goals: '++id, name, startDate, endDate, createdAt',
       tasks: '++id, goalId, date, createdAt' // Add date to tasks store
+    });
+    this.version(5).stores({
+      goals: '++id, name, startDate, endDate, createdAt',
+      tasks: '++id, goalId, date, description, createdAt' // Add description to tasks store
     });
   }
 }

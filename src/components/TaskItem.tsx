@@ -43,6 +43,11 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onEdit, onDelete, onToggleCom
           <span className={`font-medium text-gray-900 dark:text-white ${task.completed ? 'line-through text-gray-400 dark:text-slate-500' : ''}`}>
             {task.text}
           </span>
+          {task.description && (
+            <p className="text-sm text-gray-600 dark:text-slate-400 mt-0.5 whitespace-pre-wrap">
+              {task.description}
+            </p>
+          )}
         </div>
       </div>
 
