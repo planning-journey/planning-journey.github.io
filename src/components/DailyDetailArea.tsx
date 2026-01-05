@@ -5,6 +5,7 @@ import GoalSelectionBottomSheet from './GoalSelectionBottomSheet';
 import TaskList from './TaskList'; // Import TaskList
 import { db, type Task } from '../db';
 import TaskEditorModal from './TaskEditorModal'; // Import TaskEditorModal
+import { formatDateToYYYYMMDD } from '../utils/dateUtils'; // Assuming a date utility
 
 interface DailyDetailAreaProps {
   selectedDate: Date;
@@ -14,18 +15,17 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate }) => {
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [currentTaskText, setCurrentTaskText] = useState('');
   const [selectedGoalId, setSelectedGoalId] = useState<number | null>(null);
-  const [isTaskEditorModalOpen, setIsTaskEditorModalOpen] = useState(false); // State for TaskEditorModal
+  const [isTaskEditorModalOpen, setIsTaskEditorModal] = useState(false); // State for TaskEditorModal
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null); // State for task being edited
 
-  const startOfDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-  const endOfDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate() + 1, -1); // End of the selected day
+  const formattedSelectedDate = formatDateToYYYYMMDD(selectedDate);
 
   const tasks = useLiveQuery(() =>
     db.tasks
-      .where('createdAt')
-      .between(startOfDay, endOfDay, true, true)
+      .where('date')
+      .equals(formattedSelectedDate)
       .toArray(),
-    [selectedDate] // Re-run query when selectedDate changes
+    [formattedSelectedDate] // Re-run query when formattedSelectedDate changes
   );
 
   const handleAddTask = (text: string) => {
@@ -41,7 +41,8 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate }) => {
       text: currentTaskText,
       goalId: goalId,
       completed: false,
-      createdAt: selectedDate, // Use the selectedDate for new tasks
+      date: formattedSelectedDate, // Use the formattedSelectedDate for new tasks
+      createdAt: new Date(), // Set createdAt to current timestamp
     };
     await db.tasks.add(newTask);
     setCurrentTaskText(''); // Clear current task text after adding
@@ -83,8 +84,8 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate }) => {
         <TaskList
           tasks={tasks || []}
           onEditTask={handleEditTask} // Pass the new handleEditTask
-          onDeleteTask={handleDeleteTask}
-          onToggleTaskComplete={handleToggleTaskComplete}
+          onDelete={handleDeleteTask}
+          onToggleComplete={handleToggleTaskComplete}
         />
       </div>
       <DailyDetailForm onAddTask={handleAddTask} selectedDate={selectedDate} />
@@ -97,7 +98,7 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate }) => {
       <TaskEditorModal
         isOpen={isTaskEditorModalOpen}
         onClose={() => {
-          setIsTaskEditorModalOpen(false);
+          setIsTaskEditorModal(false);
           setTaskToEdit(null); // Clear taskToEdit when modal closes
         }}
         taskToEdit={taskToEdit}

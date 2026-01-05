@@ -5,6 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import GoalAutocomplete from './GoalAutocomplete';
 import DateSelectorModal from './DateSelectorModal'; // Import DateSelectorModal
 import { Calendar as CalendarIcon } from 'lucide-react'; // Import Calendar icon from lucide-react
+import { formatDateToYYYYMMDD, parseYYYYMMDDToDate } from '../utils/dateUtils';
 
 interface TaskEditorModalProps {
   isOpen: boolean;
@@ -15,8 +16,7 @@ interface TaskEditorModalProps {
 
 const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, taskToEdit, onSave }) => {
   const [taskText, setTaskText] = useState('');
-  const [description, setDescription] = useState('');
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  const [selectedDate, setSelectedDate] = useState<string | null>(formatDateToYYYYMMDD(new Date()));
   const [selectedGoalId, setSelectedGoalId] = useState<number | undefined>(undefined);
   const [isDateSelectorModalOpen, setIsDateSelectorModalOpen] = useState(false); // New state for date selector modal
   const allGoals = useLiveQuery(() => db.goals.toArray(), []);
@@ -24,13 +24,11 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
   useEffect(() => {
     if (taskToEdit) {
       setTaskText(taskToEdit.text);
-      setDescription(taskToEdit.description || '');
-      setSelectedDate(taskToEdit.dueDate ? new Date(taskToEdit.dueDate) : new Date());
+      setSelectedDate(taskToEdit.date); // Use the date string directly
       setSelectedGoalId(taskToEdit.goalId);
     } else {
       setTaskText('');
-      setDescription('');
-      setSelectedDate(new Date());
+      setSelectedDate(formatDateToYYYYMMDD(new Date())); // Default to today's date
       setSelectedGoalId(undefined);
     }
   }, [taskToEdit]);
@@ -45,8 +43,7 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
     const updatedTask: Task = {
       ...taskToEdit,
       text: taskText,
-      description: description,
-      dueDate: selectedDate,
+      date: selectedDate, // Use the date string directly
       goalId: selectedGoalId,
       completed: taskToEdit?.completed || false,
       createdAt: taskToEdit?.createdAt || new Date(),
@@ -65,12 +62,13 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
   };
 
   const handleSelectNewDate = (date: Date) => {
-    setSelectedDate(date);
+    setSelectedDate(formatDateToYYYYMMDD(date)); // Convert Date object to YYYY-MM-DD string
     setIsDateSelectorModalOpen(false);
   };
 
-  const formatDate = (date: Date | null) => {
-    if (!date) return '날짜 미지정';
+  const formatDateForDisplay = (dateString: string | null) => {
+    if (!dateString) return '날짜 미지정';
+    const date = parseYYYYMMDDToDate(dateString);
     return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
   };
 
@@ -111,7 +109,7 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
               </label>
               <div className="flex items-center gap-2">
                 <span className="px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white flex-grow">
-                  {formatDate(selectedDate)}
+                  {formatDateForDisplay(selectedDate)}
                 </span>
                 <button
                   type="button"
@@ -137,20 +135,6 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
                 required
               />
             </div>
-
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                설명
-              </label>
-              <textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="자세한 내용을 입력하세요"
-              ></textarea>
-            </div>
           </div>
 
           <div className="flex justify-end mt-8">
@@ -168,7 +152,7 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
         isOpen={isDateSelectorModalOpen}
         onClose={() => setIsDateSelectorModalOpen(false)}
         onSelectDate={handleSelectNewDate}
-        initialDate={selectedDate}
+        initialDate={selectedDate ? parseYYYYMMDDToDate(selectedDate) : new Date()}
       />
     </div>
   );
