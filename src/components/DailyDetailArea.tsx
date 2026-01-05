@@ -5,12 +5,25 @@ import GoalSelectionBottomSheet from './GoalSelectionBottomSheet';
 import TaskList from './TaskList'; // Import TaskList
 import { db, Task } from '../db'; // Import Task interface
 
-const DailyDetailArea: React.FC = () => {
+interface DailyDetailAreaProps {
+  selectedDate: Date;
+}
+
+const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ selectedDate }) => {
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [currentTaskText, setCurrentTaskText] = useState('');
   const [selectedGoalId, setSelectedGoalId] = useState<number | null>(null);
 
-  const tasks = useLiveQuery(() => db.tasks.orderBy('createdAt').toArray(), []);
+  const startOfDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+  const endOfDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate() + 1, -1); // End of the selected day
+
+  const tasks = useLiveQuery(() =>
+    db.tasks
+      .where('createdAt')
+      .between(startOfDay, endOfDay, true, true)
+      .toArray(),
+    [selectedDate] // Re-run query when selectedDate changes
+  );
 
   const handleAddTask = (text: string) => {
     setCurrentTaskText(text);
@@ -25,7 +38,7 @@ const DailyDetailArea: React.FC = () => {
       text: currentTaskText,
       goalId: goalId,
       completed: false,
-      createdAt: new Date(),
+      createdAt: selectedDate, // Use the selectedDate for new tasks
     };
     await db.tasks.add(newTask);
     setCurrentTaskText(''); // Clear current task text after adding
@@ -45,7 +58,7 @@ const DailyDetailArea: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col bg-slate-50 dark:bg-slate-900 flex-1">
+    <div className="flex flex-col bg-white dark:bg-slate-800 flex-1">
       <div className="flex-1 p-4 overflow-y-auto">
         {/* 할 일 목록 표시 공간 */}
         <TaskList
@@ -55,7 +68,7 @@ const DailyDetailArea: React.FC = () => {
           onToggleTaskComplete={handleToggleTaskComplete}
         />
       </div>
-      <DailyDetailForm onAddTask={handleAddTask} />
+      <DailyDetailForm onAddTask={handleAddTask} selectedDate={selectedDate} />
       <GoalSelectionBottomSheet
         isOpen={isBottomSheetOpen}
         onClose={() => setIsBottomSheetOpen(false)}

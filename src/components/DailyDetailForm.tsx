@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 
 interface DailyDetailFormProps {
   onAddTask: (itemText: string) => void;
+  selectedDate: Date;
 }
 
 const DailyDetailForm: React.FC<DailyDetailFormProps> = ({ onAddTask }) => {

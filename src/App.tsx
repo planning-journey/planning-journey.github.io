@@ -123,7 +123,7 @@ function App() {
             selectedDate={selectedDate}
             onGoalSelect={openGoalDetailModal}
           />
-          <DailyDetailArea/>
+          <DailyDetailArea selectedDate={selectedDate}/>
         </main>
 
         <div className="sticky bottom-0 z-10 bg-white dark:bg-slate-900 shadow-lg">

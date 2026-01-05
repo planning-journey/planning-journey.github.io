@@ -19,7 +19,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onEdit, onDelete, onToggleCom
   };
 
   return (
-    <div className="flex items-center justify-between rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700 mb-2">
+    <div className="flex items-center justify-between rounded-none bg-white py-2 px-1 dark:bg-slate-800 transition-all duration-300">
       <div className="flex items-center gap-3">
         <input
           type="checkbox"
