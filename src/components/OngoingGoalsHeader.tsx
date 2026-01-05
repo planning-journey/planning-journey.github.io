@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Goal as GoalIcon, ChevronDown } from 'lucide-react';
 import type { Goal } from '../db';
 import GoalList from './GoalList';
@@ -9,10 +9,17 @@ interface OngoingGoalsHeaderProps {
 }
 
 const OngoingGoalsHeader = ({ goals, selectedDate }: OngoingGoalsHeaderProps) => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(() => {
+    const savedState = localStorage.getItem('ongoingGoalsOpen');
+    return savedState !== null ? JSON.parse(savedState) : true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('ongoingGoalsOpen', JSON.stringify(isOpen));
+  }, [isOpen]);
 
   const toggleOpen = () => {
-    setIsOpen(!isOpen);
+    setIsOpen((prev: boolean) => !prev);
   };
 
   const filteredGoals = useMemo(() => {
@@ -36,12 +43,12 @@ const OngoingGoalsHeader = ({ goals, selectedDate }: OngoingGoalsHeaderProps) =>
 
   return (
     <div className="bg-white dark:bg-slate-900/70 backdrop-blur-sm border-b border-slate-200/50">
-      <div className="flex items-center justify-between p-4">
+      <div className="flex items-center justify-between p-4 cursor-pointer" onClick={toggleOpen}>
         <div className="flex items-center gap-2">
           <GoalIcon className="w-5 h-5 text-slate-500" />
           <h2 className="text-lg font-semibold text-slate-800 dark:text-white">Ongoing Goals</h2>
         </div>
-        <button onClick={toggleOpen} className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700">
+        <button className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700">
           <ChevronDown
             className={`w-5 h-5 text-slate-500 transition-transform duration-300 ${isOpen ? '' : '-rotate-90'}`}
           />

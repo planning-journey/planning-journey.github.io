@@ -10,9 +10,10 @@ interface HeaderProps {
   onMonthYearChange: (monthYear: string) => void; // Prop to pass to InlineCalendar
   onSelectToday: () => void; // New prop for selecting today's date
   selectedDate: Date; // New prop to pass down to InlineCalendar
+  todayScrollTrigger: number;
 }
 
-const Header = ({ onOpenModal, onDateSelect, currentMonthYear, onMonthYearChange, onSelectToday, selectedDate }: HeaderProps) => { // Destructure new props
+const Header = ({ onOpenModal, onDateSelect, currentMonthYear, onMonthYearChange, onSelectToday, selectedDate, todayScrollTrigger }: HeaderProps) => { // Destructure new props
   const [isSettingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme(); // Use the theme context
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
@@ -111,7 +112,7 @@ const Header = ({ onOpenModal, onDateSelect, currentMonthYear, onMonthYearChange
           </button>
         </div>
       </div>
-      <InlineCalendar onDateSelect={onDateSelect} onMonthYearChange={onMonthYearChange} selectedDateProp={selectedDate} /> {/* Pass new prop */}
+      <InlineCalendar onDateSelect={onDateSelect} onMonthYearChange={onMonthYearChange} selectedDateProp={selectedDate} todayScrollTrigger={todayScrollTrigger} /> {/* Pass new prop */}
     </header>
   );
 };

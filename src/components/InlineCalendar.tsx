@@ -5,6 +5,7 @@ interface InlineCalendarProps {
   onDateSelect: (date: Date) => void;
   onMonthYearChange: (monthYear: string) => void;
   selectedDateProp: Date; // New prop to control the selected date externally
+  todayScrollTrigger: number;
 }
 
 const DAY_WIDTH = 64; // Corresponds to Tailwind 'w-14' (56px) + 'mx-1' (2 * 4px) = 64px
@@ -22,7 +23,7 @@ const isSameDay = (d1: Date, d2: Date) => {
 };
 
 
-const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onMonthYearChange, selectedDateProp }) => {
+const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onMonthYearChange, selectedDateProp, todayScrollTrigger }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null); // Ref for the virtualized content container
 
@@ -76,7 +77,7 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onMonthYe
       new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long' }).format(centerDate)
     );
 
-  }, [startVirtualDate, totalDays]);
+  }, [startVirtualDate, totalDays, onMonthYearChange]);
 
 
   // Scroll to a specific date (e.g., today or selected date)
@@ -107,6 +108,12 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onMonthYe
       scrollToDate(selectedDateProp);
     }
   }, [selectedDateProp, scrollToDate, selectedDate]);
+  
+  useEffect(() => {
+    if (todayScrollTrigger > 0) {
+      scrollToDate(new Date(), 'smooth');
+    }
+  }, [todayScrollTrigger, scrollToDate]);
 
 
 

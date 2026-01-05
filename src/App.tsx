@@ -19,6 +19,7 @@ function App() {
   const [goalToDeleteId, setGoalToDeleteId] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentMonthYear, setCurrentMonthYear] = useState('');
+  const [todayScrollTrigger, setTodayScrollTrigger] = useState(0);
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
@@ -30,6 +31,7 @@ function App() {
 
   const handleSelectToday = () => {
     setSelectedDate(new Date());
+    setTodayScrollTrigger(prev => prev + 1);
   };
 
   const openGoalManagementModal = () => setGoalManagementModalOpen(true);
@@ -87,10 +89,11 @@ function App() {
           onMonthYearChange={handleMonthYearChange}
           onSelectToday={handleSelectToday}
           selectedDate={selectedDate}
+          todayScrollTrigger={todayScrollTrigger}
         />
         <main>
           <OngoingGoalsHeader goals={goals} selectedDate={selectedDate} />
-          <div className="p-8">
+          <div>
             <h1 className="text-4xl font-bold text-gray-800 dark:text-white">Welcome to Planning Journey</h1>
             <p className="text-gray-600 dark:text-slate-400 mt-2">Your journey starts here. Define your goals and track your progress.</p>
           </div>
