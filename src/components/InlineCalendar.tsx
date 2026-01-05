@@ -3,15 +3,14 @@ import React, { useState, useRef, useEffect, useCallback, useLayoutEffect, useMe
 
 interface InlineCalendarProps {
   onDateSelect: (date: Date) => void;
-  onMonthYearChange: (monthYear: string) => void;
-  selectedDateProp: Date; // New prop to control the selected date externally
+  onViewChange: (date: Date) => void; // New prop for reporting current view date
+  selectedDateProp: Date;
   todayScrollTrigger: number;
 }
 
 const DAY_WIDTH = 64; // Corresponds to Tailwind 'w-14' (56px) + 'mx-1' (2 * 4px) = 64px
 const BUFFER_DAYS = 30; // Number of extra days to render on each side of the viewport
 
-// Helper function to get the number of days in a month - not directly used in this virtualized version, but good to keep
 const getDaysInMonth = (year: number, month: number): number => {
   return new Date(year, month + 1, 0).getDate();
 };
@@ -23,11 +22,9 @@ const isSameDay = (d1: Date, d2: Date) => {
 };
 
 
-const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onMonthYearChange, selectedDateProp, todayScrollTrigger }) => {
+const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewChange, selectedDateProp, todayScrollTrigger }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null); // Ref for the virtualized content container
-
-  const [selectedDate, setSelectedDate] = useState<Date>(selectedDateProp);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   // Conceptual total range of dates
   const START_YEAR = 1900;
@@ -38,7 +35,7 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onMonthYe
   // Calculate total number of days in the virtual range
   const totalDays = useMemo(() => {
     const diffTime = Math.abs(endVirtualDate.getTime() - startVirtualDate.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) +1; // +1 to include both start and end days
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) +1;
   }, [startVirtualDate, endVirtualDate]);
 
   // Total virtual scroll width
@@ -50,34 +47,30 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onMonthYe
 
     const { scrollLeft, clientWidth } = scrollRef.current;
 
-    // Calculate the start and end index of dates that *could* be visible
     let firstVisibleIndex = Math.floor(scrollLeft / DAY_WIDTH);
     let lastVisibleIndex = Math.ceil((scrollLeft + clientWidth) / DAY_WIDTH);
 
-    // Apply buffer
     firstVisibleIndex = Math.max(0, firstVisibleIndex - BUFFER_DAYS);
     lastVisibleIndex = Math.min(totalDays - 1, lastVisibleIndex + BUFFER_DAYS);
 
     const newRenderedDates: Date[] = [];
     for (let i = firstVisibleIndex; i <= lastVisibleIndex; i++) {
       const date = new Date(startVirtualDate);
-      date.setDate(startVirtualDate.getDate() + i); // Add 'i' days to the startVirtualDate
+      date.setDate(startVirtualDate.getDate() + i);
       newRenderedDates.push(date);
     }
     setRenderedDates(newRenderedDates);
     setTransformOffset(firstVisibleIndex * DAY_WIDTH);
 
-    // Update current month/year display from the center of the viewport
     const centerScrollPosition = scrollLeft + clientWidth / 2;
     const centerDateGlobalIndex = Math.floor(centerScrollPosition / DAY_WIDTH);
     const centerDate = new Date(startVirtualDate);
     centerDate.setDate(startVirtualDate.getDate() + centerDateGlobalIndex);
 
-    onMonthYearChange(
-      new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long' }).format(centerDate)
-    );
+    // Report the center date of the view
+    onViewChange(centerDate);
 
-  }, [startVirtualDate, totalDays, onMonthYearChange]);
+  }, [startVirtualDate, totalDays, onViewChange]);
 
 
   // Scroll to a specific date (e.g., today or selected date)
@@ -93,22 +86,17 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onMonthYe
         left: scrollPosition,
         behavior: behavior
       });
-      // After scrolling, recalculate visible dates
       requestAnimationFrame(() => calculateVisibleDates());
     }
   }, [startVirtualDate, calculateVisibleDates]);
 
 
-  // Effect to update internal selectedDate when selectedDateProp changes from parent
+  // Effect to scroll to selectedDateProp when it changes (user clicks a date or 'Today')
   useEffect(() => {
-    // Check if the selectedDate from props is different from the internally managed selectedDate
-    // This prevents unnecessary updates and scrolls if the date is already selected
-    if (!isSameDay(selectedDate, selectedDateProp)) {
-      setSelectedDate(selectedDateProp);
-      scrollToDate(selectedDateProp);
-    }
-  }, [selectedDateProp, scrollToDate, selectedDate]);
+    scrollToDate(selectedDateProp);
+  }, [selectedDateProp, scrollToDate]);
   
+  // Effect to scroll to today when todayScrollTrigger changes
   useEffect(() => {
     if (todayScrollTrigger > 0) {
       scrollToDate(new Date(), 'smooth');
@@ -116,11 +104,9 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onMonthYe
   }, [todayScrollTrigger, scrollToDate]);
 
 
-
-
   // State to hold dates currently visible + buffer
   const [renderedDates, setRenderedDates] = useState<Date[]>([]);
-  const [transformOffset, setTransformOffset] = useState(0); // For positioning the rendered block
+  const [transformOffset, setTransformOffset] = useState(0);
 
 
   // Handle scroll event
@@ -146,37 +132,36 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onMonthYe
   }, [calculateVisibleDates]);
 
 
-  // Initial scroll to today's date after initial render
+  // Initial scroll on mount: to selectedDateProp if available, else today
   useLayoutEffect(() => {
     if (scrollRef.current && totalDays > 0) {
-      scrollToDate(new Date(), 'auto'); // Scroll instantly on initial load
+      scrollToDate(selectedDateProp || new Date(), 'auto'); // Scroll instantly on initial load
     }
-  }, [totalDays, scrollToDate]);
+  }, [totalDays, scrollToDate, selectedDateProp]);
 
 
   const handleDateClick = (date: Date) => {
     onDateSelect(date);
-    // scrollToDate(date); // This is handled by the useEffect watching selectedDateProp
   };
 
   return (
     <div className="w-full bg-white dark:bg-gray-900 border-b border-slate-200/50 dark:border-slate-700">
       <div
         ref={scrollRef}
-        className="flex overflow-x-auto custom-scrollbar-hide pb-2 px-2 relative" // Removed snap-x, snap-mandatory
-        style={{ height: '70px' }} // Fixed height for calendar
+        className="flex overflow-x-auto custom-scrollbar-hide pb-2 px-2 relative"
+        style={{ height: '70px' }}
       >
         <div
           ref={contentRef}
           style={{
-            width: totalScrollWidth, // Virtual width for the entire scrollable area
-            transform: `translateX(${transformOffset}px)`, // Position the visible block
+            width: totalScrollWidth,
+            transform: `translateX(${transformOffset}px)`,
             position: 'absolute',
             left: 0,
             top: 0,
             height: '100%',
             display: 'flex',
-            willChange: 'transform' // Optimize for transform changes
+            willChange: 'transform'
           }}
         >
           {renderedDates.map((date) => (
@@ -184,7 +169,7 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onMonthYe
               key={date.toISOString()}
               className={`flex-none w-14 text-center cursor-pointer
                 ${isSameDay(date, new Date()) ? 'font-bold text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300'}
-                ${isSameDay(date, selectedDate) ? 'bg-indigo-100 dark:bg-indigo-900 rounded-lg' : ''}
+                ${isSameDay(date, selectedDateProp) ? 'bg-indigo-100 dark:bg-indigo-900 rounded-lg' : ''}
                 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 p-1 mx-1
               `}
               onClick={() => handleDateClick(date)}

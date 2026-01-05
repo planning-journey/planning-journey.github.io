@@ -6,16 +6,16 @@ import InlineCalendar from './InlineCalendar'; // Import InlineCalendar
 interface HeaderProps {
   onOpenModal: () => void;
   onDateSelect: (date: Date) => void;
-  currentMonthYear: string; // New prop
-  onMonthYearChange: (monthYear: string) => void; // Prop to pass to InlineCalendar
-  onSelectToday: () => void; // New prop for selecting today's date
-  selectedDate: Date; // New prop to pass down to InlineCalendar
+  currentCalendarViewDate: Date; // New prop for the calendar's currently viewed date
+  onCalendarViewChange: (date: Date) => void; // Prop to pass to InlineCalendar for view changes
+  onSelectToday: () => void;
+  selectedDate: Date; // Prop from App.tsx representing the user's selected day
   todayScrollTrigger: number;
 }
 
-const Header = ({ onOpenModal, onDateSelect, currentMonthYear, onMonthYearChange, onSelectToday, selectedDate, todayScrollTrigger }: HeaderProps) => { // Destructure new props
+const Header = ({ onOpenModal, onDateSelect, currentCalendarViewDate, onCalendarViewChange, onSelectToday, selectedDate, todayScrollTrigger }: HeaderProps) => {
   const [isSettingsMenuOpen, setSettingsMenuOpen] = useState(false);
-  const { theme, setTheme } = useTheme(); // Use the theme context
+  const { theme, setTheme } = useTheme();
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
   const settingsMenuRef = useRef<HTMLDivElement>(null);
 
@@ -39,17 +39,19 @@ const Header = ({ onOpenModal, onDateSelect, currentMonthYear, onMonthYearChange
 
   const handleThemeChange = (selectedTheme: 'light' | 'dark' | 'system') => {
     setTheme(selectedTheme);
-    setSettingsMenuOpen(false); // Close menu after selection
+    setSettingsMenuOpen(false);
   };
+
+  const formattedMonthYear = new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long' }).format(currentCalendarViewDate);
 
   return (
     <header className="flex flex-col border-b border-slate-200/50 dark:border-slate-700 bg-white dark:bg-gray-900">
-      <div className="flex items-center justify-between p-4"> {/* This is the main horizontal flex container */}
-        <div className="flex flex-col"> {/* Left side container: title and month/year + Today button */}
-          <h1 className="text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400 mb-1">PLANNING JOURNEY</h1> {/* Smaller and fainter, added mb-1 */}
-          <div className="flex items-center"> {/* Row for month/year and today button */}
-            <div className="text-xl font-bold text-gray-900 dark:text-white"> {/* Month/year display */}
-              {currentMonthYear}
+      <div className="flex items-center justify-between p-4">
+        <div className="flex flex-col">
+          <h1 className="text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400 mb-1">PLANNING JOURNEY</h1>
+          <div className="flex items-center">
+            <div className="text-xl font-bold text-gray-900 dark:text-white">
+              {formattedMonthYear}
             </div>
             <button
               onClick={onSelectToday}
@@ -112,7 +114,12 @@ const Header = ({ onOpenModal, onDateSelect, currentMonthYear, onMonthYearChange
           </button>
         </div>
       </div>
-      <InlineCalendar onDateSelect={onDateSelect} onMonthYearChange={onMonthYearChange} selectedDateProp={selectedDate} todayScrollTrigger={todayScrollTrigger} /> {/* Pass new prop */}
+      <InlineCalendar 
+        onDateSelect={onDateSelect} 
+        onViewChange={onCalendarViewChange} // Renamed prop
+        selectedDateProp={selectedDate} 
+        todayScrollTrigger={todayScrollTrigger} 
+      />
     </header>
   );
 };

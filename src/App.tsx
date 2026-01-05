@@ -23,19 +23,21 @@ function App() {
   const [goalToDeleteId, setGoalToDeleteId] = useState<number | null>(null);
   const [goalForDetail, setGoalForDetail] = useState<Goal | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [currentMonthYear, setCurrentMonthYear] = useState('');
+  const [currentCalendarViewDate, setCurrentCalendarViewDate] = useState<Date>(new Date()); // New state for calendar's currently viewed date
   const [todayScrollTrigger, setTodayScrollTrigger] = useState(0);
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
+    setCurrentCalendarViewDate(date); // Also update view date when a date is selected
   };
 
-  const handleMonthYearChange = (monthYear: string) => {
-    setCurrentMonthYear(monthYear);
+  const handleCalendarViewChange = (date: Date) => { // Renamed and modified to accept Date
+    setCurrentCalendarViewDate(date);
   };
 
   const handleSelectToday = () => {
     setSelectedDate(new Date());
+    setCurrentCalendarViewDate(new Date()); // Also update view date when 'Today' is selected
     setTodayScrollTrigger(prev => prev + 1);
   };
 
