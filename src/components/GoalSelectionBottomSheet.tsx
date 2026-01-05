@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { db } from '../db';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -16,6 +16,9 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
   onSelectGoal,
   selectedGoalId,
 }) => {
+  const [activeIndex, setActiveIndex] = useState<number>(0);
+  const sheetRef = useRef<HTMLDivElement>(null);
+
   const activeGoals = useLiveQuery(
     async () => {
       const now = new Date();
@@ -28,12 +31,55 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
     []
   );
 
+  useEffect(() => {
+    if (isOpen) {
+      sheetRef.current?.focus();
+      const initialIndex = selectedGoalId === null
+        ? 0
+        : (activeGoals?.findIndex(goal => goal.id === selectedGoalId) ?? -1) + 1;
+      if (initialIndex !== -1 && initialIndex !== activeIndex) {
+        setActiveIndex(initialIndex);
+      }
+    }
+  }, [isOpen, activeGoals, selectedGoalId]);
+
   if (!isOpen) return null;
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (!activeGoals) return;
+
+    const totalItems = activeGoals.length + 1; // +1 for "선택 안함"
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setActiveIndex((prevIndex) => (prevIndex + 1) % totalItems);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setActiveIndex((prevIndex) => (prevIndex - 1 + totalItems) % totalItems);
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      if (activeIndex === 0) {
+        onSelectGoal(null);
+      } else {
+        const selected = activeGoals[activeIndex - 1];
+        if (selected) {
+          onSelectGoal(selected.id || null);
+        }
+      }
+      onClose(); // Close after selection
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      onClose();
+    }
+  };
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm transition-all duration-300 ease-in-out"
       onClick={onClose}
+      onKeyDown={handleKeyDown}
+      tabIndex={-1} // Make the div focusable
+      ref={sheetRef}
     >
       <div
         className="relative w-full max-w-md rounded-t-3xl bg-white p-6 shadow-lg dark:bg-slate-800 transition-all duration-300 ease-in-out transform translate-y-0"
@@ -52,8 +98,9 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
           {activeGoals && activeGoals.length > 0 ? (
             <ul className="space-y-2">
               <li
-                className={`flex cursor-pointer items-center justify-between rounded-xl p-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300
-                  ${selectedGoalId === null ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}`}
+                className={`flex cursor-pointer items-center justify-between rounded-xl p-3 transition-all duration-300
+                  ${selectedGoalId === null ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}
+                  ${activeIndex === 0 ? 'bg-gray-100 dark:bg-slate-700' : 'hover:bg-gray-50 dark:hover:bg-slate-700'}`}
                 onClick={() => onSelectGoal(null)}
               >
                 <span className="text-gray-700 dark:text-slate-200">선택 안함</span>
@@ -67,11 +114,12 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
                   </svg>
                 )}
               </li>
-              {activeGoals.map((goal) => (
+              {activeGoals.map((goal, index) => (
                 <li
                   key={goal.id}
-                  className={`flex cursor-pointer items-center justify-between rounded-xl p-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300
-                    ${selectedGoalId === goal.id ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}`}
+                  className={`flex cursor-pointer items-center justify-between rounded-xl p-3 transition-all duration-300
+                    ${selectedGoalId === goal.id ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}
+                    ${activeIndex === index + 1 ? 'bg-gray-100 dark:bg-slate-700' : 'hover:bg-gray-50 dark:hover:bg-slate-700'}`}
                   onClick={() => onSelectGoal(goal.id || null)}
                 >
                   <div className="flex items-center gap-2">
@@ -103,3 +151,4 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
 };
 
 export default GoalSelectionBottomSheet;
+

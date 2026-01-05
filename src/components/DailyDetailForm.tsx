@@ -18,7 +18,7 @@ const DailyDetailForm: React.FC<DailyDetailFormProps> = ({ onAddTask }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 p-4 border-t border-slate-200/50 dark:border-slate-700">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900/70 p-4 border-t border-slate-200/50 dark:border-slate-700">
       <div className="flex gap-2">
         <input
           type="text"
