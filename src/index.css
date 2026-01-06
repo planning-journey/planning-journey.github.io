@@ -1,7 +1,12 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@200..900&display=swap');
 @plugin '@tailwindcss/typography';
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Chiron GoRound TC', sans-serif;
+}
 
 /* src/index.css (add this) */
 .custom-scrollbar-hide::-webkit-scrollbar {

@@ -82,7 +82,7 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit }: GoalEditorModalProps) 
       setName(goalToEdit.name);
       setColor(goalToEdit.color);
       setPeriodType(goalToEdit.periodType);
-      
+
       const editStartDate = new Date(goalToEdit.startDate);
       const editEndDate = new Date(goalToEdit.endDate);
 
@@ -147,7 +147,7 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit }: GoalEditorModalProps) 
     // Only reset if not currently editing, to prevent overwriting existing goal's dates
     if (!goalToEdit) {
       setSelectedCalendarDate(new Date());
-      if (periodType === 'free') { 
+      if (periodType === 'free') {
           setStartDate(null);
           setEndDate(null);
       }
@@ -171,14 +171,14 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit }: GoalEditorModalProps) 
       createdAt: goalToEdit ? goalToEdit.createdAt : new Date(), // Keep original createdAt for edits
       ...(goalToEdit && { id: goalToEdit.id }) // Include id for updates
     };
-    
+
     try {
       if (goalToEdit) {
         await db.goals.put(goalData); // Update existing goal
       } else {
         await db.goals.add(goalData); // Add new goal
       }
-      
+
       // Reset form fields after successful save
       setName('');
       setColor(presetColors[0]);
@@ -188,8 +188,8 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit }: GoalEditorModalProps) 
       setMonth(new Date().getMonth() + 1);
       setStartDate(null);
       setEndDate(null);
-      
-      onClose(); 
+
+      onClose();
     } catch (error) {
       console.error("Failed to save goal: ", error);
     }
@@ -206,11 +206,11 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit }: GoalEditorModalProps) 
 
 
   return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-60 dark:bg-opacity-70 z-50 flex items-center justify-center"
+    <div
+      className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center"
       onClick={onClose}
     >
-      <div 
+      <div
         className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md m-4 p-6 border border-gray-200 dark:border-slate-700"
         onClick={(e) => e.stopPropagation()}
       >
@@ -218,7 +218,7 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit }: GoalEditorModalProps) 
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{goalToEdit ? '목표 수정' : '신규 목표 추가'}</h2>
           <button onClick={onClose} className="text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-white transition-colors text-2xl leading-none">&times;</button>
         </div>
-        
+
         <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
           <div className="space-y-6">
             <div>
@@ -233,7 +233,7 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit }: GoalEditorModalProps) 
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">목표 색상</label>
               <div className="flex flex-wrap gap-3">
@@ -333,7 +333,7 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit }: GoalEditorModalProps) 
               )}
             </div>
           </div>
-          
+
           <div className="flex justify-end mt-8">
             <button type="submit" className="w-full px-5 py-3 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-500 transition-all duration-300 shadow-md">
               {goalToEdit ? '목표 수정' : '목표 생성'}

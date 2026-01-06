@@ -35,9 +35,12 @@ const EvaluationOverlay: React.FC<EvaluationOverlayProps> = ({ isOpen, onClose, 
   }
 
   return (
-    <div className={`fixed top-0 left-0 right-0 transition-opacity bottom-0 bg-black/50 z-50 ${animateIn ? 'opacity-100' : 'opacity-0'}`}>
+    <div>
       <div
-        className={`fixed top-0 right-0 bottom-0 w-full bg-white dark:bg-slate-900 shadow-xl z-50 transform transition-transform duration-300 max-w-sm
+        onClick={onClose}
+        className={`fixed top-0 left-0 right-0 transition-opacity bottom-0 bg-black/50 z-50 ${animateIn ? 'opacity-100' : 'opacity-0'}`}></div>
+      <div
+        className={`fixed top-0 right-0 bottom-0 w-full bg-white dark:bg-slate-900 shadow-xl z-50 transform transition-transform duration-300 max-w-md
           ${animateIn ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <div className="flex items-center justify-between p-4 border-b border-slate-200/50 dark:border-slate-700">

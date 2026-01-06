@@ -28,7 +28,7 @@ const GoalDetailModal = ({ isOpen, onClose, goal }: GoalDetailModalProps) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-60 dark:bg-opacity-70 z-50 flex items-center justify-center"
+      className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center"
       onClick={onClose}
     >
       <div
@@ -61,10 +61,10 @@ const GoalDetailModal = ({ isOpen, onClose, goal }: GoalDetailModalProps) => {
             <span className="font-medium text-slate-800 dark:text-slate-100">{formatDate(goal.createdAt)}</span>
           </div>
         </div>
-        
+
         <div className="flex justify-end mt-6">
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="w-full px-5 py-3 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-500 transition-all duration-300 shadow-md"
           >
             닫기
