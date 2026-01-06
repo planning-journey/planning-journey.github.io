@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Settings, Flag, Sun, Moon, Monitor, Check, Calendar } from 'lucide-react'; // Import Calendar icon
+import { Settings, Flag, Sun, Moon, Monitor, Check, Calendar, Menu } from 'lucide-react'; // Import Calendar and Menu icons
 import { useTheme } from '../contexts/ThemeContext'; // Import useTheme hook
 import InlineCalendar from './InlineCalendar'; // Import InlineCalendar
 import { type Goal, type Task, type DailyEvaluation } from '../db'; // Import types
@@ -15,9 +15,10 @@ interface HeaderProps {
   allGoals: Goal[];
   allTasks: Task[];
   allDailyEvaluations: DailyEvaluation[];
+  onToggleSidebar: () => void; // New prop for toggling the sidebar
 }
 
-const Header = ({ onOpenModal, onDateSelect, currentCalendarViewDate, onCalendarViewChange, onSelectToday, selectedDate, todayScrollTrigger, allGoals, allTasks, allDailyEvaluations }: HeaderProps) => {
+const Header = ({ onOpenModal, onDateSelect, currentCalendarViewDate, onCalendarViewChange, onSelectToday, selectedDate, todayScrollTrigger, allGoals, allTasks, allDailyEvaluations, onToggleSidebar }: HeaderProps) => {
   const [isSettingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
@@ -51,18 +52,26 @@ const Header = ({ onOpenModal, onDateSelect, currentCalendarViewDate, onCalendar
   return (
     <header className="flex flex-col border-b border-slate-200/50 dark:border-slate-700 bg-white dark:bg-gray-900 pb-2">
       <div className="flex items-center justify-between p-4">
-        <div className="flex flex-col">
-          <h1 className="text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400">PLANNING JOURNEY</h1>
-          <div className="flex items-center">
-            <div className="text-lg font-bold text-gray-900 dark:text-white">
-              {formattedMonthYear}
+        <div className="flex items-center gap-2"> {/* Added flex container for hamburger and title */}
+          <button
+            onClick={onToggleSidebar}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300 md:hidden"
+          >
+            <Menu className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+          </button>
+          <div className="flex flex-col">
+            <h1 className="text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400">PLANNING JOURNEY</h1>
+            <div className="flex items-center">
+              <div className="text-lg font-bold text-gray-900 dark:text-white">
+                {formattedMonthYear}
+              </div>
+              <button
+                onClick={onSelectToday}
+                className="ml-2 p-1 rounded-full text-sm text-indigo-600 dark:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300 flex items-center gap-1"
+              >
+                <Calendar className="w-4 h-4" /> Today
+              </button>
             </div>
-            <button
-              onClick={onSelectToday}
-              className="ml-2 p-1 rounded-full text-sm text-indigo-600 dark:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300 flex items-center gap-1"
-            >
-              <Calendar className="w-4 h-4" /> Today
-            </button>
           </div>
         </div>
         <div className="flex items-center gap-4 relative">

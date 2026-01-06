@@ -11,6 +11,7 @@ import EvaluationHeader from './components/EvaluationHeader';
 import DailyDetailForm from './components/DailyDetailForm'; // Import DailyDetailForm
 import GoalSelectionBottomSheet from './components/GoalSelectionBottomSheet'; // Import GoalSelectionBottomSheet
 import EvaluationOverlay from './components/EvaluationOverlay';
+import Sidebar from './components/Sidebar'; // Import Sidebar component
 import { ThemeProvider } from './contexts/ThemeContext';
 import { db, type Goal, type Task } from './db';
 import {formatDateToYYYYMMDD} from './utils/dateUtils.ts';
@@ -25,6 +26,7 @@ function App() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentCalendarViewDate, setCurrentCalendarViewDate] = useState<Date>(new Date());
   const [todayScrollTrigger, setTodayScrollTrigger] = useState(0);
+  const [showSidebar, setShowSidebar] = useState(false); // State for sidebar visibility
 
   const goals = useLiveQuery(() => db.goals.toArray());
   const tasks = useLiveQuery(() => db.tasks.toArray());
@@ -200,40 +202,49 @@ function App() {
     }
   };
 
+  const toggleSidebar = useCallback(() => {
+    setShowSidebar(prev => !prev);
+  }, []);
+
   return (
     <ThemeProvider>
-      <div className="font-sans text-gray-900 dark:text-white min-h-screen bg-gray-100 dark:bg-slate-900 flex flex-col">
-        <div ref={stickyHeaderRef} className="sticky top-0 z-10">
-          <Header
-            onOpenModal={openGoalManagementModal}
-            onDateSelect={handleDateSelect}
-            currentCalendarViewDate={currentCalendarViewDate}
-            onCalendarViewChange={handleCalendarViewChange}
-            onSelectToday={handleSelectToday}
-            selectedDate={selectedDate}
-            todayScrollTrigger={todayScrollTrigger}
-            allGoals={goals || []}
-            allTasks={tasks || []}
-            allDailyEvaluations={dailyEvaluations || []}
-          />
-          <OngoingGoalsHeader
-            goals={goals}
-            selectedDate={selectedDate}
-            onGoalSelect={openGoalDetailModal}
-          />
-        </div>
+      <div className="font-sans text-gray-900 dark:text-white min-h-screen bg-gray-100 dark:bg-slate-900 flex">
+        <Sidebar isOpen={showSidebar} onClose={() => setShowSidebar(false)} />
 
-        <main className="flex-1 overflow-y-auto flex flex-col items-stretch">
-          <DailyDetailArea
-            formattedSelectedDate={formattedSelectedDate}
-            scrollToTaskId={latestAddedTaskId}
-            onClearScrollToTask={handleClearScrollToTask}
-          />
-        </main>
+        <div className="flex-1 flex flex-col overflow-hidden"> {/* Main content area */}
+          <div ref={stickyHeaderRef} className="sticky top-0 z-10">
+            <Header
+              onOpenModal={openGoalManagementModal}
+              onDateSelect={handleDateSelect}
+              currentCalendarViewDate={currentCalendarViewDate}
+              onCalendarViewChange={handleCalendarViewChange}
+              onSelectToday={handleSelectToday}
+              selectedDate={selectedDate}
+              todayScrollTrigger={todayScrollTrigger}
+              allGoals={goals || []}
+              allTasks={tasks || []}
+              allDailyEvaluations={dailyEvaluations || []}
+              onToggleSidebar={toggleSidebar} // Pass toggle function to Header
+            />
+            <OngoingGoalsHeader
+              goals={goals}
+              selectedDate={selectedDate}
+              onGoalSelect={openGoalDetailModal}
+            />
+          </div>
 
-        <div ref={dailyDetailFormWrapperRef} className="sticky bottom-0 z-10 bg-white dark:bg-slate-900 shadow-lg">
-          <DailyDetailForm onAddTask={handleAddTask} selectedDate={selectedDate} ref={dailyDetailFormInputRef} />
-          <EvaluationHeader stickyHeaderHeight={stickyHeaderHeight} dailyDetailFormHeight={dailyDetailFormHeight} hasEvaluation={hasEvaluation || false} onOpenEvaluationOverlay={openEvaluationOverlay} />
+          <main className="flex-1 overflow-y-auto flex flex-col items-stretch">
+            <DailyDetailArea
+              formattedSelectedDate={formattedSelectedDate}
+              scrollToTaskId={latestAddedTaskId}
+              onClearScrollToTask={handleClearScrollToTask}
+            />
+          </main>
+
+          <div ref={dailyDetailFormWrapperRef} className="sticky bottom-0 z-10 bg-white dark:bg-slate-900 shadow-lg">
+            <DailyDetailForm onAddTask={handleAddTask} selectedDate={selectedDate} ref={dailyDetailFormInputRef} />
+            <EvaluationHeader stickyHeaderHeight={stickyHeaderHeight} dailyDetailFormHeight={dailyDetailFormHeight} hasEvaluation={hasEvaluation || false} onOpenEvaluationOverlay={openEvaluationOverlay} />
+          </div>
         </div>
 
         <GoalManagementModal
