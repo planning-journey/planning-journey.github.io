@@ -10,6 +10,7 @@ import DailyDetailArea from './components/DailyDetailArea';
 import EvaluationHeader from './components/EvaluationHeader';
 import DailyDetailForm from './components/DailyDetailForm'; // Import DailyDetailForm
 import GoalSelectionBottomSheet from './components/GoalSelectionBottomSheet'; // Import GoalSelectionBottomSheet
+import EvaluationOverlay from './components/EvaluationOverlay';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { db, type Goal, type Task } from './db';
 import { formatDateToYYYYMMDD } from './utils/dateUtils'; // Import formatDateToYYYYMMDD
@@ -40,6 +41,7 @@ function App() {
   const [goalToEdit, setGoalToEdit] = useState<Goal | null>(null);
   const [goalToDeleteId, setGoalToDeleteId] = useState<number | null>(null);
   const [goalForDetail, setGoalForDetail] = useState<Goal | null>(null);
+  const [isEvaluationOverlayOpen, setIsEvaluationOverlayOpen] = useState(false);
 
 
 
@@ -177,6 +179,14 @@ function App() {
     setGoalForDetail(null);
   };
 
+  const openEvaluationOverlay = () => {
+    setIsEvaluationOverlayOpen(true);
+  };
+
+  const closeEvaluationOverlay = () => {
+    setIsEvaluationOverlayOpen(false);
+  };
+
   const handleConfirmDelete = async () => {
     if (goalToDeleteId !== null) {
       try {
@@ -218,7 +228,7 @@ function App() {
 
         <div ref={dailyDetailFormWrapperRef} className="sticky bottom-0 z-10 bg-white dark:bg-slate-900 shadow-lg">
           <DailyDetailForm onAddTask={handleAddTask} selectedDate={selectedDate} ref={dailyDetailFormInputRef} />
-          <EvaluationHeader selectedDate={selectedDate} stickyHeaderHeight={stickyHeaderHeight} dailyDetailFormHeight={dailyDetailFormHeight} hasEvaluation={hasEvaluation || false} />
+          <EvaluationHeader selectedDate={selectedDate} stickyHeaderHeight={stickyHeaderHeight} dailyDetailFormHeight={dailyDetailFormHeight} hasEvaluation={hasEvaluation || false} onOpenEvaluationOverlay={openEvaluationOverlay} />
         </div>
 
         <GoalManagementModal
@@ -254,6 +264,13 @@ function App() {
             {toastMessage}
           </div>
         )}
+        {/* Evaluation Overlay */}
+        <EvaluationOverlay
+          isOpen={isEvaluationOverlayOpen}
+          onClose={closeEvaluationOverlay}
+          selectedDate={selectedDate}
+          hasEvaluation={hasEvaluation || false}
+        />
       </div>
     </ThemeProvider>
   );

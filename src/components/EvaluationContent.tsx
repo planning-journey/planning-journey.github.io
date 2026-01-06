@@ -55,7 +55,7 @@ const EvaluationContent: React.FC<EvaluationContentProps> = ({ selectedDate }) =
 
   return (
     <div
-      className="p-4 bg-white dark:bg-slate-800 text-slate-800 dark:text-white rounded-xl shadow-md transition-all duration-300 cursor-pointer"
+      className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white rounded-xl transition-all duration-300 cursor-pointer"
       onClick={handleContainerClick}
     >
       {isEditing ? (
