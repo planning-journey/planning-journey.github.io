@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { db } from '../db';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { formatDateToYYYYMMDD } from '../utils/dateUtils'; // Import the helper
 
 interface GoalSelectionBottomSheetProps {
   isOpen: boolean;

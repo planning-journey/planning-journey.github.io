@@ -40,7 +40,38 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ formattedSelectedDate
 
   const handleSaveEditedTask = async (task: Task) => {
     try {
-      await db.tasks.put(task); // Use put for both add and update as it handles both
+      await db.transaction('rw', db.tasks, async () => {
+        const originalTask = await db.tasks.get(task.id);
+
+        if (originalTask && originalTask.date !== task.date) {
+          // Date changed: Handle reordering
+          // 1. Calculate new order for the new date
+          const tasksInNewDate = await db.tasks
+            .where({ date: task.date, projectId: task.projectId })
+            .toArray();
+          const maxOrder = tasksInNewDate.length > 0
+            ? Math.max(...tasksInNewDate.map(t => t.order))
+            : -1;
+          task.order = maxOrder + 1;
+
+          // 2. Update the task
+          await db.tasks.put(task);
+
+          // 3. Reorder tasks in the old date
+          const tasksInOldDate = await db.tasks
+            .where({ date: originalTask.date, projectId: originalTask.projectId })
+            .sortBy('order');
+          
+          for (let i = 0; i < tasksInOldDate.length; i++) {
+            if (tasksInOldDate[i].order !== i) {
+              await db.tasks.update(tasksInOldDate[i].id, { order: i });
+            }
+          }
+        } else {
+          // Date not changed: Just update
+          await db.tasks.put(task);
+        }
+      });
     } catch (error) {
       console.error("Failed to save task: ", error);
     } finally {
@@ -50,7 +81,27 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ formattedSelectedDate
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    await db.tasks.delete(taskId);
+    try {
+      await db.transaction('rw', db.tasks, async () => {
+        const taskToDelete = await db.tasks.get(taskId);
+        if (!taskToDelete) return;
+
+        const { date, projectId } = taskToDelete;
+        await db.tasks.delete(taskId);
+
+        const remainingTasks = await db.tasks
+          .where({ date, projectId })
+          .sortBy('order');
+
+        for (let i = 0; i < remainingTasks.length; i++) {
+          if (remainingTasks[i].order !== i) {
+            await db.tasks.update(remainingTasks[i].id, { order: i });
+          }
+        }
+      });
+    } catch (error) {
+      console.error("Failed to delete task:", error);
+    }
   };
 
   const handleToggleTaskComplete = async (taskId: string, completed: boolean) => {
