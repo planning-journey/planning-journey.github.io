@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import {useState, useCallback, useRef, useEffect} from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import Header from './components/Header';
 import GoalManagementModal from './components/GoalManagementModal';
@@ -40,12 +40,16 @@ function App() {
   const [currentTaskText, setCurrentTaskText] = useState('');
   const [selectedGoalId, setSelectedGoalId] = useState<number | null>(null);
   const dailyDetailFormInputRef = useRef<HTMLInputElement>(null);
+  const stickyHeaderRef = useRef<HTMLDivElement>(null);
+  const dailyDetailFormWrapperRef = useRef<HTMLDivElement>(null);
 
   const [toastMessage, setToastMessage] = useState('');
   const [isToastVisible, setIsToastVisible] = useState(false);
 
   // New state for scrolling
   const [latestAddedTaskId, setLatestAddedTaskId] = useState<number | null>(null);
+  const [stickyHeaderHeight, setStickyHeaderHeight] = useState(0);
+  const [dailyDetailFormHeight, setDailyDetailFormHeight] = useState(0);
 
   const showToast = useCallback((message: string) => {
     setToastMessage(message);
@@ -75,6 +79,14 @@ function App() {
     }
   }, [dailyDetailFormInputRef]);
 
+  useEffect(() => {
+    if (stickyHeaderRef.current) {
+      setStickyHeaderHeight(stickyHeaderRef.current.offsetHeight);
+    }
+    if (dailyDetailFormWrapperRef.current) {
+      setDailyDetailFormHeight(dailyDetailFormWrapperRef.current.offsetHeight);
+    }
+  }, [goals, selectedDate, currentCalendarViewDate, todayScrollTrigger]);
   const handleClearScrollToTask = useCallback(() => {
     setLatestAddedTaskId(null);
   }, []);
@@ -171,7 +183,7 @@ function App() {
   return (
     <ThemeProvider>
       <div className="font-sans text-gray-900 dark:text-white min-h-screen bg-gray-100 dark:bg-slate-900 flex flex-col">
-        <div className="sticky top-0 z-10">
+        <div ref={stickyHeaderRef} className="sticky top-0 z-10">
           <Header
             onOpenModal={openGoalManagementModal}
             onDateSelect={handleDateSelect}
@@ -196,10 +208,9 @@ function App() {
           />
         </main>
 
-        <div className="sticky bottom-0 z-10 bg-white dark:bg-slate-900 shadow-lg">
-          {/* DailyDetailForm moved here, before EvaluationHeader */}
+        <div ref={dailyDetailFormWrapperRef} className="sticky bottom-0 z-10 bg-white dark:bg-slate-900 shadow-lg">
           <DailyDetailForm onAddTask={handleAddTask} selectedDate={selectedDate} ref={dailyDetailFormInputRef} />
-          <EvaluationHeader selectedDate={selectedDate} />
+          <EvaluationHeader selectedDate={selectedDate} stickyHeaderHeight={stickyHeaderHeight} dailyDetailFormHeight={dailyDetailFormHeight} />
         </div>
 
         <GoalManagementModal
