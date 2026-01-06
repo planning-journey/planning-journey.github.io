@@ -192,14 +192,19 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
           {renderedDates.map((date) => (
             <div
               key={date.toISOString()}
-              className={`flex-none w-14 text-center cursor-pointer
+              className={`flex-none w-14 text-center cursor-pointer relative pb-1
                 ${isSameDay(date, new Date()) ? 'font-bold text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300'}
-                ${isSameDay(date, selectedDateProp) ? 'bg-indigo-100 dark:bg-indigo-900 rounded-lg' : ''}
+                ${isSameDay(date, selectedDateProp) ? 'bg-indigo-100 dark:bg-indigo-900 rounded-xl' : ''}
                 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 p-1 mx-1
               `}
               onClick={() => handleDateClick(date)}
             >
-              <div className="text-xs">{new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(date)}</div>
+              {date.getDate() === 1 && (
+                <div className="absolute top-0 left-0 right-0 -mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  {new Intl.DateTimeFormat('ko-KR', { month: 'numeric' }).format(date)}월
+                </div>
+              )}
+              <div className="text-xs mt-2">{new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(date)}</div>
               <div className="text-lg leading-none">{date.getDate()}</div>
             </div>
           ))}

@@ -42,7 +42,7 @@ const EvaluationContent: React.FC<EvaluationContentProps> = ({ selectedDate }) =
   };
 
   const handleSave = async () => {
-    await db.dailyEvaluations.put({ date: formattedDate, evaluationText: editedContent });
+    await db.dailyEvaluations.put({ date: formattedDate, evaluationText: editedContent, createdAt: new Date() });
     setContent(editedContent);
     setIsEditing(false);
   };

@@ -2,12 +2,13 @@ import { ClipboardCheck } from 'lucide-react';
 
 
 interface EvaluationHeaderProps {
-  selectedDate: Date;
   hasEvaluation: boolean;
   onOpenEvaluationOverlay: () => void;
+  stickyHeaderHeight: number;
+  dailyDetailFormHeight: number;
 }
 
-const EvaluationHeader: React.FC<EvaluationHeaderProps> = ({ selectedDate, hasEvaluation, onOpenEvaluationOverlay }) => {
+const EvaluationHeader: React.FC<EvaluationHeaderProps> = ({ hasEvaluation, onOpenEvaluationOverlay }) => {
 
 
 
