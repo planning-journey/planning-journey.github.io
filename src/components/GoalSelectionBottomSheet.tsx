@@ -20,15 +20,9 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const sheetRef = useRef<HTMLDivElement>(null);
 
-  const activeGoals = useLiveQuery(
+  const allGoals = useLiveQuery(
     async () => {
-      const now = new Date();
-      const formattedNow = formatDateToYYYYMMDD(now); // Convert now to YYYY-MM-DD string
-      return db.goals
-        .where('startDate')
-        .belowOrEqual(formattedNow) // Compare string with string
-        .and((goal) => goal.endDate >= formattedNow) // Compare string with string
-        .toArray();
+      return db.goals.toArray(); // Simply get all goals
     },
     []
   );
@@ -38,19 +32,19 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
       sheetRef.current?.focus();
       const initialIndex = selectedGoalId === null
         ? 0
-        : (activeGoals?.findIndex(goal => goal.id === selectedGoalId) ?? -1) + 1;
+        : (allGoals?.findIndex(goal => goal.id === selectedGoalId) ?? -1) + 1;
       if (initialIndex !== -1 && initialIndex !== activeIndex) {
         setActiveIndex(initialIndex);
       }
     }
-  }, [isOpen, activeGoals, selectedGoalId]);
+  }, [isOpen, allGoals, selectedGoalId]);
 
   if (!isOpen) return null;
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (!activeGoals) return;
+    if (!allGoals) return;
 
-    const totalItems = activeGoals.length + 1; // +1 for "선택 안함"
+    const totalItems = allGoals.length + 1; // +1 for "선택 안함"
 
     if (event.key === 'ArrowDown') {
       event.preventDefault();
@@ -97,7 +91,7 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
           </button>
         </div>
         <div className="mt-4 max-h-60 overflow-y-auto">
-          {activeGoals && activeGoals.length > 0 ? (
+          {allGoals && allGoals.length > 0 ? (
             <ul className="space-y-2">
               <li
                 className={`flex cursor-pointer items-center justify-between rounded-xl p-3 transition-all duration-300
@@ -116,7 +110,7 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
                   </svg>
                 )}
               </li>
-              {activeGoals.map((goal, index) => (
+              {allGoals.map((goal, index) => (
                 <li
                   key={goal.id}
                   className={`flex cursor-pointer items-center justify-between rounded-xl p-3 transition-all duration-300
