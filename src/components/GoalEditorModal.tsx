@@ -11,6 +11,7 @@ interface GoalEditorModalProps {
   isOpen: boolean;
   onClose: () => void;
   goalToEdit: Goal | null;
+  selectedProjectId: string | null; // Add selectedProjectId prop
 }
 
 // Preset Colors for goals
@@ -69,7 +70,7 @@ const datesAreEqual = (date1: Date | null, date2: Date | null) => {
   return date1.getTime() === date2.getTime();
 };
 
-const GoalEditorModal = ({ isOpen, onClose, goalToEdit }: GoalEditorModalProps) => {
+const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: GoalEditorModalProps) => {
   useBodyScrollLock(isOpen);
   const [name, setName] = useState('');
   const [color, setColor] = useState(presetColors[0]); // Default to first preset color
@@ -183,6 +184,7 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit }: GoalEditorModalProps) 
       startDate,
       endDate,
       createdAt: goalToEdit ? goalToEdit.createdAt : new Date(), // Keep original createdAt for edits
+      projectId: goalToEdit ? goalToEdit.projectId : selectedProjectId, // Assign current selected project ID
       ...(goalToEdit && { id: goalToEdit.id }) // Include id for updates
     };
 

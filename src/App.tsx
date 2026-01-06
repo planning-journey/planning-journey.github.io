@@ -12,9 +12,13 @@ import DailyDetailForm from './components/DailyDetailForm'; // Import DailyDetai
 import GoalSelectionBottomSheet from './components/GoalSelectionBottomSheet'; // Import GoalSelectionBottomSheet
 import EvaluationOverlay from './components/EvaluationOverlay';
 import Sidebar from './components/Sidebar'; // Import Sidebar component
+import AddProjectModal from './components/AddProjectModal'; // Import AddProjectModal
+import EditProjectModal from './components/EditProjectModal'; // Import EditProjectModal
 import { ThemeProvider } from './contexts/ThemeContext';
 import { db, type Goal, type Task } from './db';
 import {formatDateToYYYYMMDD} from './utils/dateUtils.ts';
+import { Project } from './types/project'; // Import Project interface
+import { v4 as uuidv4 } from 'uuid'; // Import uuid for unique IDs
 
 // Helper function to check if two dates are in the same month and year
 const isSameMonthYear = (d1: Date, d2: Date) => {
@@ -27,6 +31,27 @@ function App() {
   const [currentCalendarViewDate, setCurrentCalendarViewDate] = useState<Date>(new Date());
   const [todayScrollTrigger, setTodayScrollTrigger] = useState(0);
   const [showSidebar, setShowSidebar] = useState(false); // State for sidebar visibility
+
+  // Project Management States
+  const [projects, setProjects] = useState<Project[]>(() => {
+    const savedProjects = localStorage.getItem('projects');
+    return savedProjects ? JSON.parse(savedProjects) : [];
+  });
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [isAddProjectModalOpen, setIsAddProjectModalOpen] = useState(false);
+  const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
+  const [projectToEdit, setProjectToEdit] = useState<Project | null>(null);
+
+  // Effect to save projects to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('projects', JSON.stringify(projects));
+    if (projects.length > 0 && !selectedProjectId) {
+      setSelectedProjectId(projects[0].id); // Select the first project by default
+    } else if (projects.length === 0) {
+      setSelectedProjectId(null); // No projects, no selection
+    }
+  }, [projects, selectedProjectId]);
+
 
   const goals = useLiveQuery(() => db.goals.toArray());
   const tasks = useLiveQuery(() => db.tasks.toArray());
@@ -77,6 +102,37 @@ function App() {
 
   const formattedSelectedDate = formatDateToYYYYMMDD(selectedDate); // Define formattedSelectedDate here
 
+  // Project Management Handlers
+  const handleAddProject = useCallback((name: string) => {
+    const newProject: Project = { id: uuidv4(), name };
+    setProjects((prev) => [...prev, newProject]);
+    setSelectedProjectId(newProject.id); // Select the newly added project
+    showToast(`'${name}' 프로젝트가 추가되었습니다.`);
+  }, [showToast]);
+
+  const handleEditProject = useCallback((oldName: string, newName: string) => {
+    setProjects((prev) =>
+      prev.map((project) =>
+        project.name === oldName ? { ...project, name: newName } : project
+      )
+    );
+    showToast(`'${oldName}' 프로젝트가 '${newName}'으로 수정되었습니다.`);
+  }, [showToast]);
+
+  const handleDeleteProject = useCallback((id: string) => {
+    setProjects((prev) => prev.filter((project) => project.id !== id));
+    // If the deleted project was selected, select the first available project or null
+    if (selectedProjectId === id) {
+      setSelectedProjectId(projects.length > 1 ? projects[0].id : null);
+    }
+    showToast('프로젝트가 삭제되었습니다.');
+  }, [projects, selectedProjectId, showToast]);
+
+  const handleSelectProject = useCallback((id: string) => {
+    setSelectedProjectId(id);
+    setShowSidebar(false); // Close sidebar on project selection
+  }, []);
+
   const addOrUpdateTask = useCallback(async (text: string, goalId: number | null, date: string) => {
     const newTask: Task = {
       text: text,
@@ -84,6 +140,7 @@ function App() {
       completed: false,
       date: date,
       createdAt: new Date(),
+      projectId: selectedProjectId, // Assign current selected project ID
     };
     const newTaskId = await db.tasks.add(newTask);
     setLatestAddedTaskId(newTaskId); // Set the ID of the newly added task
@@ -91,7 +148,7 @@ function App() {
     if (dailyDetailFormInputRef.current) {
       dailyDetailFormInputRef.current.focus();
     }
-  }, [dailyDetailFormInputRef]);
+  }, [dailyDetailFormInputRef, selectedProjectId]);
 
   useEffect(() => {
     if (stickyHeaderRef.current) {
@@ -125,7 +182,7 @@ function App() {
   const handleDateSelect = useCallback((date: Date) => {
     setSelectedDate(date);
     setCurrentCalendarViewDate(date);
-  }, []);
+  }, handleSelectProject);
 
   const handleCalendarViewChange = useCallback((date: Date) => {
     if (!isSameMonthYear(date, currentCalendarViewDate)) {
@@ -145,7 +202,7 @@ function App() {
     setGoalToEdit(null);
   };
 
-  const openNewGoalEditorModal = () => {
+  const openNewGoalEditorModal = (projectId: string | null) => {
     setGoalToEdit(null);
     setGoalManagementModalOpen(false);
     setGoalEditorModalOpen(true);
@@ -209,7 +266,19 @@ function App() {
   return (
     <ThemeProvider>
       <div className="font-sans text-gray-900 dark:text-white min-h-screen bg-gray-100 dark:bg-slate-900 flex">
-        <Sidebar isOpen={showSidebar} onClose={() => setShowSidebar(false)} />
+        <Sidebar
+          isOpen={showSidebar}
+          onClose={() => setShowSidebar(false)}
+          projects={projects}
+          onAddProjectClick={() => setIsAddProjectModalOpen(true)}
+          onEditProjectClick={(project) => {
+            setProjectToEdit(project);
+            setIsEditProjectModalOpen(true);
+          }}
+          onDeleteProjectClick={handleDeleteProject}
+          onSelectProject={handleSelectProject}
+          selectedProjectId={selectedProjectId}
+        />
 
         <div className="flex-1 flex flex-col md:pl-64"> {/* Main content area */}
           <div ref={stickyHeaderRef} className="sticky top-0 z-10">
@@ -230,6 +299,7 @@ function App() {
               goals={goals}
               selectedDate={selectedDate}
               onGoalSelect={openGoalDetailModal}
+              selectedProjectId={selectedProjectId}
             />
           </div>
 
@@ -238,6 +308,7 @@ function App() {
               formattedSelectedDate={formattedSelectedDate}
               scrollToTaskId={latestAddedTaskId}
               onClearScrollToTask={handleClearScrollToTask}
+              selectedProjectId={selectedProjectId} // Pass selected project ID
             />
           </main>
 
@@ -253,11 +324,13 @@ function App() {
           onAddNewGoal={openNewGoalEditorModal}
           onEditGoal={openEditGoalEditorModal}
           onDeleteGoal={openConfirmDeleteModal}
+          selectedProjectId={selectedProjectId}
         />
         <GoalEditorModal
           isOpen={isGoalEditorModalOpen}
           onClose={closeGoalEditorModal}
           goalToEdit={goalToEdit}
+          selectedProjectId={selectedProjectId}
         />
         <ConfirmDeleteModal
           isOpen={isConfirmDeleteModalOpen}
@@ -287,6 +360,20 @@ function App() {
           selectedDate={selectedDate}
           hasEvaluation={hasEvaluation || false}
         />
+        {/* Project Modals */}
+        <AddProjectModal
+          isOpen={isAddProjectModalOpen}
+          onClose={() => setIsAddProjectModalOpen(false)}
+          onAddProject={handleAddProject}
+        />
+        {projectToEdit && (
+          <EditProjectModal
+            isOpen={isEditProjectModalOpen}
+            onClose={() => setIsEditProjectModalOpen(false)}
+            onEditProject={handleEditProject}
+            currentProjectName={projectToEdit.name}
+          />
+        )}
       </div>
     </ThemeProvider>
   );

@@ -7,6 +7,7 @@ interface OngoingGoalsHeaderProps {
   goals: Goal[] | undefined;
   selectedDate: Date;
   onGoalSelect?: (goal: Goal) => void;
+  selectedProjectId: string | null; // Add selectedProjectId prop
 }
 
 const isUrgentGoal = (endDate: Date, compareDate: Date): boolean => {
@@ -24,7 +25,7 @@ const isUrgentGoal = (endDate: Date, compareDate: Date): boolean => {
 };
 
 
-const OngoingGoalsHeader = ({ goals, selectedDate, onGoalSelect }: OngoingGoalsHeaderProps) => {
+const OngoingGoalsHeader = ({ goals, selectedDate, onGoalSelect, selectedProjectId }: OngoingGoalsHeaderProps) => {
   const [isOpen, setIsOpen] = useState(() => {
     const savedState = localStorage.getItem('ongoingGoalsOpen');
     return savedState !== null ? JSON.parse(savedState) : true;
@@ -39,7 +40,10 @@ const OngoingGoalsHeader = ({ goals, selectedDate, onGoalSelect }: OngoingGoalsH
   };
 
   const filteredGoals = useMemo(() => {
-    if (!goals) return [];
+    if (!goals || !selectedProjectId) return []; // If no projects selected, return empty
+
+    // Filter goals by projectId first
+    const projectGoals = goals.filter(goal => goal.projectId === selectedProjectId);
 
     // Set time to 00:00:00 for accurate date comparison
     const startOfDay = new Date(selectedDate);
@@ -48,7 +52,7 @@ const OngoingGoalsHeader = ({ goals, selectedDate, onGoalSelect }: OngoingGoalsH
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    return goals
+    return projectGoals
       .filter(goal => {
         const startDate = new Date(goal.startDate);
         startDate.setHours(0, 0, 0, 0);
@@ -58,7 +62,7 @@ const OngoingGoalsHeader = ({ goals, selectedDate, onGoalSelect }: OngoingGoalsH
         return startDate <= startOfDay && startOfDay <= endDate && endDate >= today;
       })
       .sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
-  }, [goals, selectedDate]);
+  }, [goals, selectedDate, selectedProjectId]);
 
   const urgentGoals = useMemo(() => {
     if (!filteredGoals) return [];

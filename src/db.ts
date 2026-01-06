@@ -8,6 +8,7 @@ export interface Goal {
   startDate: Date;
   endDate: Date;
   createdAt: Date;
+  projectId: string | null; // Add projectId
 }
 
 export interface Task {
@@ -18,6 +19,7 @@ export interface Task {
   date: string; // YYYY-MM-DD format
   description?: string; // Optional description for the task
   createdAt: Date;
+  projectId: string | null; // Add projectId
 }
 
 export interface DailyEvaluation {
@@ -52,6 +54,16 @@ export class MySubClassedDexie extends Dexie {
       goals: '++id, name, startDate, endDate, createdAt',
       tasks: '++id, goalId, date, description, createdAt',
       dailyEvaluations: '&date, createdAt' // Primary key is date, createdAt is indexed
+    });
+    this.version(7).stores({
+      goals: '++id, name, startDate, endDate, createdAt',
+      tasks: '++id, goalId, date, description, createdAt, projectId', // Add projectId to tasks store and index it
+      dailyEvaluations: '&date, createdAt'
+    });
+    this.version(8).stores({
+      goals: '++id, name, startDate, endDate, createdAt, projectId', // Add projectId to goals store and index it
+      tasks: '++id, goalId, date, description, createdAt, projectId',
+      dailyEvaluations: '&date, createdAt'
     });
   }
 }

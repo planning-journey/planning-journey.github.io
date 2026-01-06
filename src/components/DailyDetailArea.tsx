@@ -9,9 +9,10 @@ interface DailyDetailAreaProps {
   formattedSelectedDate: string;
   scrollToTaskId: number | null;
   onClearScrollToTask: () => void; // New prop to clear scroll request
+  selectedProjectId: string | null; // Add selectedProjectId prop
 }
 
-const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ formattedSelectedDate, scrollToTaskId, onClearScrollToTask }) => {
+const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ formattedSelectedDate, scrollToTaskId, onClearScrollToTask, selectedProjectId }) => {
   // States related to task editing/viewing, not moved
   const [isTaskEditorModalOpen, setIsTaskEditorModalOpen] = React.useState(false); // State for TaskEditorModal
   const [taskToEdit, setTaskToEdit] = React.useState<Task | null>(null); // State for task being edited
@@ -19,11 +20,14 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ formattedSelectedDate
   const [taskToView, setTaskToView] = React.useState<Task | null>(null); // State for task being viewed
 
   const tasks = useLiveQuery(() =>
-    db.tasks
-      .where('date')
-      .equals(formattedSelectedDate)
-      .toArray(),
-    [formattedSelectedDate] // Re-run query when formattedSelectedDate changes
+    selectedProjectId
+      ? db.tasks
+          .where('date')
+          .equals(formattedSelectedDate)
+          .and(task => task.projectId === selectedProjectId)
+          .toArray()
+      : Promise.resolve([]), // If no project selected, return empty array
+    [formattedSelectedDate, selectedProjectId] // Re-run query when formattedSelectedDate or selectedProjectId changes
   );
 
   const handleEditTask = (task: Task) => {

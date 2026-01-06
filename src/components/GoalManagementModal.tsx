@@ -7,9 +7,10 @@ import useBodyScrollLock from '../utils/useBodyScrollLock';
 interface GoalManagementModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddNewGoal: () => void;
+  onAddNewGoal: (projectId: string | null) => void; // Modified to accept projectId
   onEditGoal: (goal: Goal) => void;
   onDeleteGoal: (id: number) => void;
+  selectedProjectId: string | null; // Add selectedProjectId prop
 }
 
 // Helper function to get the week number of the month (1-indexed)
@@ -53,9 +54,11 @@ const formatPeriod = (goal: Goal): string => {
 };
 
 
-const GoalManagementModal = ({ isOpen, onClose, onAddNewGoal, onEditGoal, onDeleteGoal }: GoalManagementModalProps) => {
+const GoalManagementModal = ({ isOpen, onClose, onAddNewGoal, onEditGoal, onDeleteGoal, selectedProjectId }: GoalManagementModalProps) => {
   useBodyScrollLock(isOpen);
-  const goals = useLiveQuery(() => db.goals.toArray(), []) as Goal[] | undefined;
+  const allGoals = useLiveQuery(() => db.goals.toArray(), []) as Goal[] | undefined;
+  // Filter goals by selectedProjectId
+  const goals = allGoals ? allGoals.filter(goal => goal.projectId === selectedProjectId) : [];
 
   const [visible, setVisible] = useState(isOpen);
   const [animated, setAnimated] = useState(isOpen);
@@ -145,7 +148,7 @@ const GoalManagementModal = ({ isOpen, onClose, onAddNewGoal, onEditGoal, onDele
 
         <div className="p-4 border-t border-slate-200/50 dark:border-slate-700">
           <button
-            onClick={onAddNewGoal}
+            onClick={() => onAddNewGoal(selectedProjectId)} // Pass selectedProjectId
             className="w-full px-5 py-3 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-500 transition-all duration-300 shadow-md"
           >
             신규 목표 추가
@@ -157,3 +160,4 @@ const GoalManagementModal = ({ isOpen, onClose, onAddNewGoal, onEditGoal, onDele
 };
 
 export default GoalManagementModal;
+
