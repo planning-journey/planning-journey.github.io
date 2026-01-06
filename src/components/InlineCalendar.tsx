@@ -174,7 +174,7 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
       <div
         ref={scrollRef}
         className="flex overflow-x-auto custom-scrollbar-hide pb-2 px-2 relative"
-        style={{ height: 'calc(1rem + 0.5rem + 1rem + 1.5rem + 1rem + 0.5rem)' }}
+        style={{ height: 'calc(1rem + 0.5rem + 1rem + 1.5rem + 1rem + 1rem)' }}
       >
         <div
           ref={contentRef}
@@ -192,14 +192,14 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
           {renderedDates.map((date) => (
             <div
               key={date.toISOString()}
-              className={`flex-none w-14 text-center select-none cursor-pointer relative pb-1 rounded-xl
+              className={`flex-none w-14 text-center select-none cursor-pointer relative py-2 rounded-xl
                 ${isSameDay(date, new Date()) ? 'font-bold text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300'}
                 ${isSameDay(date, selectedDateProp) ? 'bg-indigo-100 dark:bg-indigo-900' : ''}
                 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 p-1 mx-1
               `}
               onClick={() => handleDateClick(date)}
             >
-              <div className="text-xs text-slate-500/50 dark:text-slate-400 h-4">
+              <div className="text-xs text-slate-500 dark:text-slate-400 h-4">
                 {date.getDate() === 1 && (
                   <span>{new Intl.DateTimeFormat('ko-KR', { month: 'numeric' }).format(date)}</span>
                 )}
