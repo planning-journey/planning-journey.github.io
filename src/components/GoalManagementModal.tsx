@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type Goal } from '../db';
 import { Pencil, X } from 'lucide-react';
+import useBodyScrollLock from '../utils/useBodyScrollLock';
 
 interface GoalManagementModalProps {
   isOpen: boolean;
@@ -53,40 +54,41 @@ const formatPeriod = (goal: Goal): string => {
 
 
 const GoalManagementModal = ({ isOpen, onClose, onAddNewGoal, onEditGoal, onDeleteGoal }: GoalManagementModalProps) => {
+  useBodyScrollLock(isOpen);
   const goals = useLiveQuery(() => db.goals.toArray(), []) as Goal[] | undefined;
 
-  // Animation states
-  const [shouldRender, setShouldRender] = useState(false);
-  const [animateIn, setAnimateIn] = useState(false);
+  const [visible, setVisible] = useState(isOpen);
+  const [animated, setAnimated] = useState(isOpen);
 
   useEffect(() => {
     if (isOpen) {
-      setShouldRender(true);
-      setTimeout(() => {
-        setAnimateIn(true);
-      }, 50);
+      setVisible(true);
+      const timeoutId = setTimeout(() => {
+        setAnimated(true);
+      }, 50); // Small delay to ensure the component is mounted before starting animation
+      return () => clearTimeout(timeoutId);
     } else {
-      setAnimateIn(false);
-      const timer = setTimeout(() => {
-        setShouldRender(false);
-      }, 300);
-      return () => clearTimeout(timer);
+      setAnimated(false);
+      const timeoutId = setTimeout(() => {
+        setVisible(false);
+      }, 300); // Must match CSS transition duration
+      return () => clearTimeout(timeoutId);
     }
   }, [isOpen]);
 
-  if (!shouldRender) {
+  // If not visible, return null to unmount
+  if (!visible) {
     return null;
   }
 
   return (
     <div
-      className={`fixed top-0 left-0 right-0 bottom-0 bg-black/50 z-50 transition-opacity duration-300
-        ${animateIn ? 'opacity-100' : 'opacity-0'}`}
+      className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${animated ? 'opacity-100' : 'opacity-0'}`}
       onClick={onClose}
     >
       <div
         className={`fixed top-0 right-0 bottom-0 w-full bg-white dark:bg-slate-900 shadow-xl z-50 transform transition-transform duration-300 max-w-md flex flex-col
-          ${animateIn ? 'translate-x-0' : 'translate-x-full'}`}
+          ${animated ? 'translate-x-0' : 'translate-x-full'}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-slate-200/50 dark:border-slate-700">

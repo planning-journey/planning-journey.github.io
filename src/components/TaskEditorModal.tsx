@@ -5,6 +5,7 @@ import GoalAutocomplete from './GoalAutocomplete';
 import DateSelectorModal from './DateSelectorModal';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
 import { formatDateToYYYYMMDD, parseYYYYMMDDToDate } from '../utils/dateUtils';
+import useBodyScrollLock from '../utils/useBodyScrollLock';
 
 interface TaskEditorModalProps {
   isOpen: boolean;
@@ -14,46 +15,49 @@ interface TaskEditorModalProps {
 }
 
 const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, taskToEdit, onSave }) => {
+  useBodyScrollLock(isOpen);
   const [taskText, setTaskText] = useState('');
-  const [description, setDescription] = useState(''); // Add description state
+  const [description, setDescription] = useState('');
   const [selectedDate, setSelectedDate] = useState<string | null>(formatDateToYYYYMMDD(new Date()));
   const [selectedGoalId, setSelectedGoalId] = useState<number | null | undefined>(undefined);
   const [isDateSelectorModalOpen, setIsDateSelectorModalOpen] = useState(false);
   const allGoals = useLiveQuery(() => db.goals.toArray(), []);
-  const textareaRef = useRef<HTMLTextAreaElement>(null); // Ref for textarea
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Animation states
-  const [shouldRender, setShouldRender] = useState(false);
-  const [animateIn, setAnimateIn] = useState(false);
+  const [visible, setVisible] = useState(isOpen);
+  const [animated, setAnimated] = useState(isOpen);
 
   useEffect(() => {
     if (isOpen) {
-      setShouldRender(true);
-      setTimeout(() => {
-        setAnimateIn(true);
-      }, 50);
+      setVisible(true);
+      const timeoutId = setTimeout(() => {
+        setAnimated(true);
+      }, 50); // Small delay to ensure the component is mounted before starting animation
+      return () => clearTimeout(timeoutId);
     } else {
-      setAnimateIn(false);
-      const timer = setTimeout(() => {
-        setShouldRender(false);
-      }, 300);
-      return () => clearTimeout(timer);
+      setAnimated(false);
+      const timeoutId = setTimeout(() => {
+        setVisible(false);
+      }, 300); // Must match CSS transition duration
+      return () => clearTimeout(timeoutId);
     }
   }, [isOpen]);
 
   useEffect(() => {
-    if (isOpen && taskToEdit) {
-      setTaskText(taskToEdit.text);
-      setDescription(taskToEdit.description || '');
-      setSelectedDate(taskToEdit.date);
-      setSelectedGoalId(taskToEdit.goalId);
-    } else if (isOpen) { // Only reset when opening a new task, not when closing
-      setTaskText('');
-      setDescription('');
-      setSelectedDate(formatDateToYYYYMMDD(new Date()));
-      setSelectedGoalId(undefined);
+    if (isOpen) {
+      if (taskToEdit) {
+        setTaskText(taskToEdit.text);
+        setDescription(taskToEdit.description || '');
+        setSelectedDate(taskToEdit.date);
+        setSelectedGoalId(taskToEdit.goalId);
+      } else {
+        setTaskText('');
+        setDescription('');
+        setSelectedDate(formatDateToYYYYMMDD(new Date()));
+        setSelectedGoalId(undefined);
+      }
     }
-  }, [taskToEdit, isOpen]);
+  }, [isOpen, taskToEdit]);
 
   // Effect for dynamic textarea height
   useEffect(() => {
@@ -61,9 +65,10 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
     }
-  }, [description, animateIn]); // Adjust height when description changes or modal opens
+  }, [description, animated]); // Adjust height when description changes or modal opens
 
-  if (!shouldRender) {
+  // If not visible, return null to unmount
+  if (!visible) {
     return null;
   }
 
@@ -106,13 +111,12 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
   };
 
   return (
-    <div className={`fixed top-0 left-0 right-0 bottom-0 bg-black/50 z-50 transition-opacity duration-300
-      ${animateIn ? 'opacity-100' : 'opacity-0'}`}
+    <div className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${animated ? 'opacity-100' : 'opacity-0'}`}
       onClick={onClose}
     >
       <div
         className={`fixed top-0 right-0 bottom-0 w-full bg-white dark:bg-slate-900 shadow-xl z-50 transform transition-transform duration-300 max-w-md
-          ${animateIn ? 'translate-x-0' : 'translate-x-full'}`}
+          ${animated ? 'translate-x-0' : 'translate-x-full'}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-slate-200/50 dark:border-slate-700">
@@ -195,7 +199,7 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
         <div className="p-4 border-t border-slate-200/50 dark:border-slate-700">
           <button
             type="submit"
-            onClick={handleSave} // Attach handleSave to this button now
+            onClick={handleSave}
             className="w-full px-5 py-3 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-500 transition-all duration-300 shadow-md"
           >
             {taskToEdit ? '할 일 수정' : '할 일 추가'}

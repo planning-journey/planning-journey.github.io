@@ -1,36 +1,76 @@
 import { useState, useEffect } from 'react';
+import useBodyScrollLock from '../utils/useBodyScrollLock';
 
 import { db, type Goal } from '../db'; // Import Goal interface
 import Calendar from './Calendar'; // Import the custom Calendar component
 
+// Type definitions
+type PeriodTypeOption = 'daily' | 'weekly' | 'monthly' | 'yearly' | 'free';
+
 interface GoalEditorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  goalToEdit?: Goal | null; // New prop for editing
+  goalToEdit: Goal | null;
 }
 
+// Preset Colors for goals
 const presetColors = [
-  '#4f46e5', // Indigo-600
-  '#dc2626', // Red-600
-  '#ea580c', // Orange-600
-  '#d97706', // Amber-600
-  '#059669', // Emerald-600
-  '#0d9488', // Teal-600
-  '#1d4ed8', // Blue-700
-  '#8b5cf6', // Violet-500
+  '#EF4444', // Red-500
+  '#F97316', // Orange-500
+  '#EAB308', // Yellow-500
+  '#22C55E', // Green-500
+  '#0EA5E9', // Sky-500
+  '#6366F1', // Indigo-500
+  '#EC4899', // Pink-500
+  '#8B5CF6', // Violet-500
+  '#F43F5E', // Rose-500
+  '#14B8A6', // Teal-500
 ];
 
-type PeriodTypeOption = 'daily' | 'weekly' | 'monthly' | 'yearly' | 'free';
-
+// Period Type Options for goal setting
 const periodTypeOptions = [
-  { value: 'yearly', label: '연간' },
-  { value: 'monthly', label: '월간' },
-  { value: 'weekly', label: '주간' },
-  { value: 'daily', label: '일간' },
-  { value: 'free', label: '자유' },
+  { label: '매일', value: 'daily' },
+  { label: '매주', value: 'weekly' },
+  { label: '매월', value: 'monthly' },
+  { label: '매년', value: 'yearly' },
+  { label: '자유', value: 'free' },
 ];
+
+// Helper functions (re-implementing date-fns functionality using native Date methods)
+const getStartOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1);
+const getEndOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0);
+const getStartOfYear = (date: Date) => new Date(date.getFullYear(), 0, 1);
+const getEndOfYear = (date: Date) => new Date(date.getFullYear(), 11, 31);
+const getStartOfWeek = (date: Date, weekStartsOn: 0 | 1 = 0) => { // weekStartsOn: 0=Sunday, 1=Monday
+  const day = date.getDay(); // 0 for Sunday, 1 for Monday, etc.
+  const diff = (day < weekStartsOn ? 7 : 0) + day - weekStartsOn;
+  const start = new Date(date);
+  start.setDate(date.getDate() - diff);
+  start.setHours(0, 0, 0, 0); // Normalize to start of day
+  return start;
+};
+const getEndOfWeek = (date: Date, weekStartsOn: 0 | 1 = 0) => {
+  const start = getStartOfWeek(date, weekStartsOn);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  end.setHours(23, 59, 59, 999); // Normalize to end of day
+  return end;
+};
+// Simple format function (not as robust as date-fns, but sufficient for display)
+const formatDate = (date: Date | null) => {
+  if (!date) return '';
+  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
+};
+
+// Helper to compare dates (considering null)
+const datesAreEqual = (date1: Date | null, date2: Date | null) => {
+  if (date1 === null && date2 === null) return true;
+  if (date1 === null || date2 === null) return false;
+  return date1.getTime() === date2.getTime();
+};
 
 const GoalEditorModal = ({ isOpen, onClose, goalToEdit }: GoalEditorModalProps) => {
+  useBodyScrollLock(isOpen);
   const [name, setName] = useState('');
   const [color, setColor] = useState(presetColors[0]); // Default to first preset color
   const [periodType, setPeriodType] = useState<PeriodTypeOption>('daily');
@@ -42,67 +82,37 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit }: GoalEditorModalProps) 
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
 
-  // Helper functions (re-implementing date-fns functionality using native Date methods)
-  const getStartOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1);
-  const getEndOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0);
-  const getStartOfYear = (date: Date) => new Date(date.getFullYear(), 0, 1);
-  const getEndOfYear = (date: Date) => new Date(date.getFullYear(), 11, 31);
-  const getStartOfWeek = (date: Date, weekStartsOn: 0 | 1 = 0) => { // weekStartsOn: 0=Sunday, 1=Monday
-    const day = date.getDay(); // 0 for Sunday, 1 for Monday, etc.
-    const diff = (day < weekStartsOn ? 7 : 0) + day - weekStartsOn;
-    const start = new Date(date);
-    start.setDate(date.getDate() - diff);
-    start.setHours(0, 0, 0, 0); // Normalize to start of day
-    return start;
-  };
-  const getEndOfWeek = (date: Date, weekStartsOn: 0 | 1 = 0) => {
-    const start = getStartOfWeek(date, weekStartsOn);
-    const end = new Date(start);
-    end.setDate(start.getDate() + 6);
-    end.setHours(23, 59, 59, 999); // Normalize to end of day
-    return end;
-  };
-  // Simple format function (not as robust as date-fns, but sufficient for display)
-  const formatDate = (date: Date | null) => {
-    if (!date) return '';
-    return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
-  };
 
-
-  // Helper to compare dates (considering null)
-  const datesAreEqual = (date1: Date | null, date2: Date | null) => {
-    if (date1 === null && date2 === null) return true;
-    if (date1 === null || date2 === null) return false;
-    return date1.getTime() === date2.getTime();
-  };
 
   // Effect to populate form when goalToEdit changes
   useEffect(() => {
-    if (goalToEdit) {
-      setName(goalToEdit.name);
-      setColor(goalToEdit.color);
-      setPeriodType(goalToEdit.periodType);
+    if (isOpen) { // Only set state if modal is open
+      if (goalToEdit) {
+        setName(goalToEdit.name);
+        setColor(goalToEdit.color);
+        setPeriodType(goalToEdit.periodType);
 
-      const editStartDate = new Date(goalToEdit.startDate);
-      const editEndDate = new Date(goalToEdit.endDate);
+        const editStartDate = new Date(goalToEdit.startDate);
+        const editEndDate = new Date(goalToEdit.endDate);
 
-      setYear(editStartDate.getFullYear());
-      setMonth(editStartDate.getMonth() + 1);
-      setSelectedCalendarDate(editStartDate); // For daily/weekly
-      setStartDate(editStartDate);
-      setEndDate(editEndDate);
-    } else {
-      // Reset form if no goalToEdit (for new goal)
-      setName('');
-      setColor(presetColors[0]);
-      setPeriodType('daily');
-      setSelectedCalendarDate(new Date());
-      setYear(new Date().getFullYear());
-      setMonth(new Date().getMonth() + 1);
-      setStartDate(null);
-      setEndDate(null);
+        setYear(editStartDate.getFullYear());
+        setMonth(editStartDate.getMonth() + 1);
+        setSelectedCalendarDate(editStartDate); // For daily/weekly
+        setStartDate(editStartDate);
+        setEndDate(editEndDate);
+      } else {
+        // Reset form for new goal
+        setName('');
+        setColor(presetColors[0]);
+        setPeriodType('daily');
+        setSelectedCalendarDate(new Date());
+        setYear(new Date().getFullYear());
+        setMonth(new Date().getMonth() + 1);
+        setStartDate(null);
+        setEndDate(null);
+      }
     }
-  }, [goalToEdit]);
+  }, [isOpen, goalToEdit]);
 
 
   useEffect(() => {
@@ -144,15 +154,19 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit }: GoalEditorModalProps) 
 
   // Reset selectedCalendarDate when periodType changes to avoid weird state issues
   useEffect(() => {
-    // Only reset if not currently editing, to prevent overwriting existing goal's dates
     if (!goalToEdit) {
-      setSelectedCalendarDate(new Date());
+      const today = new Date();
+      // Only update if the current selectedCalendarDate is different from today
+      // or if it's null (meaning it needs initialization)
+      if (!selectedCalendarDate || selectedCalendarDate.toDateString() !== today.toDateString()) {
+        setSelectedCalendarDate(today);
+      }
       if (periodType === 'free') {
           setStartDate(null);
           setEndDate(null);
       }
     }
-  }, [periodType, goalToEdit]);
+  }, [periodType, goalToEdit, selectedCalendarDate]); // Added selectedCalendarDate to deps
 
 
   if (!isOpen) return null;

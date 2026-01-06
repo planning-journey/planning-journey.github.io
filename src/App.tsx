@@ -12,7 +12,7 @@ import DailyDetailForm from './components/DailyDetailForm'; // Import DailyDetai
 import GoalSelectionBottomSheet from './components/GoalSelectionBottomSheet'; // Import GoalSelectionBottomSheet
 import EvaluationOverlay from './components/EvaluationOverlay';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { db, type Goal, type Task, type DailyEvaluation } from './db';
+import { db, type Goal, type Task } from './db';
 import {formatDateToYYYYMMDD} from './utils/dateUtils.ts';
 
 // Helper function to check if two dates are in the same month and year
