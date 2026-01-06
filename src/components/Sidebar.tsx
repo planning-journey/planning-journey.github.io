@@ -26,18 +26,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const { theme, setTheme } = useTheme();
 
-  const handleToggleTheme = () => {
-    if (theme === 'light') {
-      setTheme('dark');
-    } else if (theme === 'dark') {
-      setTheme('system');
-    } else {
-      setTheme('light');
-    }
-  };
-
-  const ThemeIcon = theme === 'light' ? Sun : theme === 'dark' ? Moon : Monitor;
-
   return (
     <>
       {/* Overlay for mobile */}
@@ -107,13 +95,40 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </div>
         </nav>
-        {/* Theme Toggle Button at the bottom */}
-        <div className="p-4 border-t border-slate-200/50 dark:border-slate-700">
+        {/* Theme selection buttons at the bottom */}
+        <div className="p-4 border-t border-slate-200/50 dark:border-slate-700 flex justify-around gap-2">
           <button
-            onClick={handleToggleTheme}
-            className="w-full flex items-center justify-center p-2 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-200"
+            onClick={() => setTheme('light')}
+            className={`flex-1 p-2 rounded-xl flex items-center justify-center transition-colors duration-200
+              ${theme === 'light'
+                ? 'bg-indigo-100 dark:bg-indigo-700 text-indigo-800 dark:text-white'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+              }`}
+            aria-label="Light theme"
           >
-            <ThemeIcon className="w-5 h-5" />
+            <Sun className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setTheme('dark')}
+            className={`flex-1 p-2 rounded-xl flex items-center justify-center transition-colors duration-200
+              ${theme === 'dark'
+                ? 'bg-indigo-100 dark:bg-indigo-700 text-indigo-800 dark:text-white'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+              }`}
+            aria-label="Dark theme"
+          >
+            <Moon className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setTheme('system')}
+            className={`flex-1 p-2 rounded-xl flex items-center justify-center transition-colors duration-200
+              ${theme === 'system'
+                ? 'bg-indigo-100 dark:bg-indigo-700 text-indigo-800 dark:text-white'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+              }`}
+            aria-label="System theme"
+          >
+            <Monitor className="w-5 h-5" />
           </button>
         </div>
       </div>
