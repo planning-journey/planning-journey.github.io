@@ -178,14 +178,15 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: Goa
     }
 
     const goalData: Goal = {
+      id: goalToEdit ? goalToEdit.id : crypto.randomUUID(), // Generate ID for new goals
+      projectId: selectedProjectId!, // Assign current selected project ID, assuming it's always present when creating a goal
       name,
       color,
       periodType,
-      startDate,
-      endDate,
+      startDate: startDate.toISOString(), // Convert Date to ISO string for storage
+      endDate: endDate.toISOString(),   // Convert Date to ISO string for storage
+      status: goalToEdit ? goalToEdit.status : 'pending', // Default status for new goals
       createdAt: goalToEdit ? goalToEdit.createdAt : new Date(), // Keep original createdAt for edits
-      projectId: goalToEdit ? goalToEdit.projectId : selectedProjectId, // Assign current selected project ID
-      ...(goalToEdit && { id: goalToEdit.id }) // Include id for updates
     };
 
     try {

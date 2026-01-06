@@ -6,7 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 interface TaskItemProps {
   task: Task;
   onView: (task: Task) => void;
-  onToggleComplete: (taskId: number, completed: boolean) => void;
+  onToggleComplete: (taskId: string, completed: boolean) => void;
 }
 
 const TaskItem = React.forwardRef<HTMLDivElement, TaskItemProps>(({ task, onView, onToggleComplete }, ref) => {
@@ -38,7 +38,7 @@ const TaskItem = React.forwardRef<HTMLDivElement, TaskItemProps>(({ task, onView
             </div>
           )}
           <span className={`font-medium text-gray-900 dark:text-white ${task.completed ? 'line-through text-gray-400 dark:text-slate-500' : ''}`}>
-            {task.text}
+            {task.title}
           </span>
         </div>
       </div>

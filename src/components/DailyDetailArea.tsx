@@ -7,7 +7,7 @@ import TaskDetailModal from './TaskDetailModal'; // Import TaskDetailModal
 
 interface DailyDetailAreaProps {
   formattedSelectedDate: string;
-  scrollToTaskId: number | null;
+  scrollToTaskId: string | null;
   onClearScrollToTask: () => void; // New prop to clear scroll request
   selectedProjectId: string | null; // Add selectedProjectId prop
 }
@@ -45,22 +45,27 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ formattedSelectedDate
       if (updatedTask.id) {
         await db.tasks.put(updatedTask);
       } else {
-        // This case should ideally not happen if we're only editing existing tasks
-        await db.tasks.add(updatedTask);
+        // For new tasks, generate a UUID and assign projectId
+        const newTaskWithId: Task = {
+          ...updatedTask,
+          id: crypto.randomUUID(),
+          projectId: selectedProjectId!, // Ensure projectId is assigned for new tasks
+        };
+        await db.tasks.add(newTaskWithId);
       }
     } catch (error) {
-      console.error("Failed to save edited task: ", error);
+      console.error("Failed to save task: ", error);
     } finally {
       setTaskToEdit(null);
       setIsTaskEditorModalOpen(false);
     }
   };
 
-  const handleDeleteTask = async (taskId: number) => {
+  const handleDeleteTask = async (taskId: string) => {
     await db.tasks.delete(taskId);
   };
 
-  const handleToggleTaskComplete = async (taskId: number, completed: boolean) => {
+  const handleToggleTaskComplete = async (taskId: string, completed: boolean) => {
     await db.tasks.update(taskId, { completed });
   };
 

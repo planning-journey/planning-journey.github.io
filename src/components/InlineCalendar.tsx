@@ -220,8 +220,10 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
 
             // Check for goals ending on this date
             const hasEndingGoals = projectGoals.some(goal => {
-              // Normalize goal.endDate to compare only date part
-              const normalizedGoalEndDate = new Date(goal.endDate.getFullYear(), goal.endDate.getMonth(), goal.endDate.getDate());
+              // Convert goal.endDate from string to Date object
+              const goalEndDate = new Date(goal.endDate);
+              // Normalize goalEndDate to compare only date part
+              const normalizedGoalEndDate = new Date(goalEndDate.getFullYear(), goalEndDate.getMonth(), goalEndDate.getDate());
               return isSameDay(normalizedGoalEndDate, date);
             });
 

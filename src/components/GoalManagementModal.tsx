@@ -9,7 +9,7 @@ interface GoalManagementModalProps {
   onClose: () => void;
   onAddNewGoal: (projectId: string | null) => void; // Modified to accept projectId
   onEditGoal: (goal: Goal) => void;
-  onDeleteGoal: (id: number) => void;
+  onDeleteGoal: (id: string) => void;
   selectedProjectId: string | null; // Add selectedProjectId prop
 }
 
@@ -25,8 +25,12 @@ const getWeekOfMonth = (date: Date): number => {
 
 // Helper function to format date strings for display
 const formatPeriod = (goal: Goal): string => {
-  const { periodType, startDate, endDate } = goal;
-  if (!startDate || !endDate) return "날짜 정보 없음";
+  const { periodType } = goal;
+  if (!goal.startDate || !goal.endDate) return "날짜 정보 없음";
+
+  // Convert string dates to Date objects
+  const startDate = new Date(goal.startDate);
+  const endDate = new Date(goal.endDate);
 
   const startYear = startDate.getFullYear();
   const startMonth = startDate.getMonth() + 1;

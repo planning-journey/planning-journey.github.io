@@ -9,11 +9,13 @@ export interface Project {
 export interface Goal {
   id: string;
   projectId: string; // Link to Project
-  title: string;
+  name: string; // Renamed from title to name for consistency
+  color: string;
+  periodType: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'free';
   startDate: string;
   endDate: string;
   status: 'pending' | 'in_progress' | 'completed' | 'archived';
-  // Add other goal-related properties as needed
+  createdAt?: Date; // Added createdAt
 }
 
 export interface Task {
@@ -26,7 +28,6 @@ export interface Task {
   completed: boolean;
   date: string; // Added date field
   createdAt?: Date; // It is present in App.tsx
-  text?: string; // It is present in App.tsx
 }
 
 export interface DailyEvaluation {

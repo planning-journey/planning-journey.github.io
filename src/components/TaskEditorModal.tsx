@@ -16,10 +16,10 @@ interface TaskEditorModalProps {
 
 const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, taskToEdit, onSave }) => {
   useBodyScrollLock(isOpen);
-  const [taskText, setTaskText] = useState('');
+  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [selectedDate, setSelectedDate] = useState<string | null>(formatDateToYYYYMMDD(new Date()));
-  const [selectedGoalId, setSelectedGoalId] = useState<number | null | undefined>(undefined);
+  const [selectedGoalId, setSelectedGoalId] = useState<string | null | undefined>(undefined);
   const [isDateSelectorModalOpen, setIsDateSelectorModalOpen] = useState(false);
   const allGoals = useLiveQuery(() => db.goals.toArray(), []);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -46,12 +46,12 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
   useEffect(() => {
     if (isOpen) {
       if (taskToEdit) {
-        setTaskText(taskToEdit.text);
+        setTitle(taskToEdit.title); // Use title
         setDescription(taskToEdit.description || '');
         setSelectedDate(taskToEdit.date);
         setSelectedGoalId(taskToEdit.goalId);
       } else {
-        setTaskText('');
+        setTitle('');
         setDescription('');
         setSelectedDate(formatDateToYYYYMMDD(new Date()));
         setSelectedGoalId(undefined);
@@ -73,16 +73,16 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
   }
 
   const handleSave = async () => {
-    if (!taskText.trim() || !selectedDate) {
+    if (!title.trim() || !selectedDate) {
       return;
     }
 
     const updatedTask: Task = {
       ...taskToEdit,
-      text: taskText,
+      title: title, // Use title
       description: description,
       date: selectedDate,
-      goalId: selectedGoalId === undefined ? null : selectedGoalId,
+      goalId: selectedGoalId === undefined ? undefined : selectedGoalId || undefined, // Ensure string or undefined
       completed: taskToEdit?.completed || false,
       createdAt: taskToEdit?.createdAt || new Date(),
     };
@@ -91,7 +91,7 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
     onClose();
   };
 
-  const handleSelectGoal = (goalId: number | null | undefined) => {
+  const handleSelectGoal = (goalId: string | null | undefined) => { // Updated type
     setSelectedGoalId(goalId);
   };
 
@@ -164,14 +164,14 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
               </div>
 
               <div>
-                <label htmlFor="taskText" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                <label htmlFor="taskTitle" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   할 일
                 </label>
                 <input
                   type="text"
-                  id="taskText"
-                  value={taskText}
-                  onChange={(e) => setTaskText(e.target.value)}
+                  id="taskTitle"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                   className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder="예: 보고서 작성"
                   required

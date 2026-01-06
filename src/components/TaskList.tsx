@@ -5,13 +5,13 @@ import TaskItem from './TaskItem';
 interface TaskListProps {
   tasks: Task[];
   onViewTaskDetail: (task: Task) => void;
-  onToggleTaskComplete: (taskId: number, completed: boolean) => void;
-  scrollToTaskId: number | null;
+  onToggleTaskComplete: (taskId: string, completed: boolean) => void;
+  scrollToTaskId: string | null;
   onClearScrollToTask: () => void; // New prop to clear scroll request
 }
 
 const TaskList: React.FC<TaskListProps> = ({ tasks, onViewTaskDetail, onToggleTaskComplete, scrollToTaskId, onClearScrollToTask }) => {
-  const itemRefs = useRef<Map<number, HTMLDivElement | null>>(new Map());
+  const itemRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
 
   useEffect(() => {
     if (scrollToTaskId !== null) {

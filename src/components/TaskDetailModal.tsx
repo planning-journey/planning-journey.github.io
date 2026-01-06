@@ -12,7 +12,7 @@ interface TaskDetailModalProps {
   onClose: () => void;
   task: Task | null;
   onEditTask: (task: Task) => void;
-  onDeleteTask: (taskId: number) => void;
+  onDeleteTask: (taskId: string) => void;
 }
 
 const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task, onEditTask, onDeleteTask }) => {
@@ -119,7 +119,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
             <div className="space-y-4 text-gray-800 dark:text-slate-200">
               {/* Task Name */}
               <div>
-                <h3 className="text-xl font-bold mb-1">{task.text}</h3>
+                <h3 className="text-xl font-bold mb-1">{task.title}</h3>
               </div>
 
               {/* Goal */}

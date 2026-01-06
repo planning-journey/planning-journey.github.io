@@ -59,12 +59,20 @@ const EvaluationContent = React.forwardRef<EvaluationContentRef, EvaluationConte
     const saveContent = useCallback(async () => {
       if (!selectedProjectId) return; // Cannot save without a selected project
 
-      await db.dailyEvaluations.put({
+      let dailyEvaluation = await db.dailyEvaluations
+        .where({ date: formattedDate, projectId: selectedProjectId })
+        .first();
+
+      const evaluationToSave = {
+        id: dailyEvaluation ? dailyEvaluation.id : crypto.randomUUID(),
         date: formattedDate,
+        evaluation: editedContentRef.current, // Use editedContentRef.current for evaluation
         evaluationText: editedContentRef.current,
-        createdAt: new Date(),
+        createdAt: dailyEvaluation ? dailyEvaluation.createdAt : new Date(), // Keep original createdAt for edits
         projectId: selectedProjectId,
-      });
+      };
+
+      await db.dailyEvaluations.put(evaluationToSave);
       setContent(editedContentRef.current);
       setIsLocalEditing(false); // Exit local editing mode after saving
       setIsEditing(false); // Inform parent to exit editing mode
