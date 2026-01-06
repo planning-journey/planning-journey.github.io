@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Settings, Flag, Sun, Moon, Monitor, Check, Calendar } from 'lucide-react'; // Import Calendar icon
 import { useTheme } from '../contexts/ThemeContext'; // Import useTheme hook
 import InlineCalendar from './InlineCalendar'; // Import InlineCalendar
+import { type Goal, type Task, type DailyEvaluation } from '../db'; // Import types
 
 interface HeaderProps {
   onOpenModal: () => void;
@@ -11,9 +12,12 @@ interface HeaderProps {
   onSelectToday: () => void;
   selectedDate: Date; // Prop from App.tsx representing the user's selected day
   todayScrollTrigger: number;
+  allGoals: Goal[];
+  allTasks: Task[];
+  allDailyEvaluations: DailyEvaluation[];
 }
 
-const Header = ({ onOpenModal, onDateSelect, currentCalendarViewDate, onCalendarViewChange, onSelectToday, selectedDate, todayScrollTrigger }: HeaderProps) => {
+const Header = ({ onOpenModal, onDateSelect, currentCalendarViewDate, onCalendarViewChange, onSelectToday, selectedDate, todayScrollTrigger, allGoals, allTasks, allDailyEvaluations }: HeaderProps) => {
   const [isSettingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
@@ -120,6 +124,9 @@ const Header = ({ onOpenModal, onDateSelect, currentCalendarViewDate, onCalendar
         selectedDateProp={selectedDate}
         currentViewDateProp={currentCalendarViewDate} // Pass currentCalendarViewDate to InlineCalendar
         todayScrollTrigger={todayScrollTrigger}
+        allGoals={allGoals}
+        allTasks={allTasks}
+        allDailyEvaluations={allDailyEvaluations}
       />
     </header>
   );

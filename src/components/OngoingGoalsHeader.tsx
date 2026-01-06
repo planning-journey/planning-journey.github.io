@@ -80,7 +80,7 @@ const OngoingGoalsHeader = ({ goals, selectedDate, onGoalSelect }: OngoingGoalsH
       </div>
       {!isOpen && urgentGoals.length > 0 && (
         <div className="px-4 py-2 text-sm text-red-500 bg-red-50 dark:bg-red-900/20 border-y border-red-200 dark:border-red-900 -mb-px">
-          종료일이 임박한 {urgentGoals.length}개의 목표가 있습니다.
+          종료일이 임박한 {urgentGoals.length}개의 진행중인 목표가 있습니다.
         </div>
       )}
       {isOpen && <GoalList goals={filteredGoals} onGoalSelect={onGoalSelect} currentDate={selectedDate} />}

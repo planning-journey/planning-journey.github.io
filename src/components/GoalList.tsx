@@ -63,7 +63,7 @@ const GoalList = ({ goals, onGoalSelect, currentDate }: GoalListProps) => {
         })
       ) : (
         <div className="text-center py-4 text-slate-500 text-sm">
-          No ongoing goals for this day.
+          선택한 날짜에 진행중인 목표가 없습니다.
         </div>
       )}
     </div>

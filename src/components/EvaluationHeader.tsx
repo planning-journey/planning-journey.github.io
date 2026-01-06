@@ -19,7 +19,7 @@ const EvaluationHeader: React.FC<EvaluationHeaderProps> = ({ hasEvaluation, onOp
           <ClipboardCheck className="w-5 h-5 text-slate-500" />
           <h2 className="text-lg font-semibold text-slate-800 dark:text-white">Evaluation</h2>
           {hasEvaluation && (
-            <div className="w-2 h-2 bg-red-500 rounded-full ml-1 animate-pulse"></div>
+            <div className="w-2 h-2 bg-green-400 rounded-full ml-1"></div>
           )}
         </div>
       </div>

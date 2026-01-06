@@ -1,5 +1,6 @@
 // src/components/InlineCalendar.tsx
 import React, { useState, useRef, useEffect, useCallback, useLayoutEffect, useMemo } from 'react';
+import { type Goal, type Task, type DailyEvaluation } from '../db'; // Import types
 
 interface InlineCalendarProps {
   onDateSelect: (date: Date) => void;
@@ -7,6 +8,9 @@ interface InlineCalendarProps {
   selectedDateProp: Date;
   currentViewDateProp: Date; // New prop for the calendar's currently viewed date (from App.tsx)
   todayScrollTrigger: number;
+  allGoals: Goal[];
+  allTasks: Task[];
+  allDailyEvaluations: DailyEvaluation[];
 }
 
 const DAY_WIDTH = 64; // Corresponds to Tailwind 'w-14' (56px) + 'mx-1' (2 * 4px) = 64px
@@ -24,8 +28,16 @@ const isSameMonthYear = (d1: Date, d2: Date) => {
     d1.getMonth() === d2.getMonth();
 };
 
+// Helper function to format date to YYYY-MM-DD
+const formatDateToYYYYMMDD = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
-const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewChange, selectedDateProp, currentViewDateProp, todayScrollTrigger }) => {
+
+const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewChange, selectedDateProp, currentViewDateProp, todayScrollTrigger, allGoals, allTasks, allDailyEvaluations }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -189,26 +201,49 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
             willChange: 'transform'
           }}
         >
-          {renderedDates.map((date) => (
-            <div
-              key={date.toISOString()}
-              className={`flex-none w-14 text-center select-none cursor-pointer relative py-2 rounded-xl
-                ${isSameDay(date, new Date()) ? 'font-bold text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300'}
-                ${isSameDay(date, selectedDateProp) ? 'bg-indigo-100 dark:bg-indigo-900' : ''}
-                hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 p-1 mx-1
-              `}
-              onClick={() => handleDateClick(date)}
-            >
-              <div className="text-xs text-slate-500 dark:text-slate-400 h-4">
-                {date.getDate() === 1 && (
-                  <span>{new Intl.DateTimeFormat('ko-KR', { month: 'numeric' }).format(date)}</span>
-                )}
+          {renderedDates.map((date) => {
+            const formattedDate = formatDateToYYYYMMDD(date);
+
+            // Check for tasks
+            const hasTasks = allTasks.some(task => task.date === formattedDate);
+
+            // Check for evaluations
+            const hasEvaluation = allDailyEvaluations.some(
+              evaluation => evaluation.date === formattedDate && evaluation.evaluationText && evaluation.evaluationText.trim().length > 0
+            );
+
+            // Check for goals ending on this date
+            const hasEndingGoals = allGoals.some(goal => {
+              // Normalize goal.endDate to compare only date part
+              const normalizedGoalEndDate = new Date(goal.endDate.getFullYear(), goal.endDate.getMonth(), goal.endDate.getDate());
+              return isSameDay(normalizedGoalEndDate, date);
+            });
+
+            return (
+              <div
+                key={date.toISOString()}
+                className={`flex-none w-14 text-center select-none cursor-pointer relative py-2 rounded-xl
+                  ${isSameDay(date, new Date()) ? 'font-bold text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300'}
+                  ${isSameDay(date, selectedDateProp) ? 'bg-indigo-100 dark:bg-indigo-900' : ''}
+                  hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 p-1 mx-1
+                `}
+                onClick={() => handleDateClick(date)}
+              >
+                <div className="text-xs text-slate-500 dark:text-slate-400 h-4">
+                  {date.getDate() === 1 && (
+                    <span>{new Intl.DateTimeFormat('ko-KR', { month: 'numeric' }).format(date)}</span>
+                  )}
+                </div>
+                <div className="text-xs mt-2">{new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(date)}</div>
+                <div>{date.getDate()}</div>
+                <div className="flex items-center justify-center gap-1 h-4 flex-none">
+                  {hasTasks ? <span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span> : <span className="w-1.5 h-1.5 bg-slate-200/75 dark:bg-slate-700 rounded-full"></span>}
+                  {hasEvaluation ? <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span> : <span className="w-1.5 h-1.5 bg-slate-200/75 dark:bg-slate-700 rounded-full"></span>}
+                  {hasEndingGoals ? <span className="w-1.5 h-1.5 bg-red-400 rounded-full"></span> : <span className="w-1.5 h-1.5 bg-slate-200/75 dark:bg-slate-700 rounded-full"></span>}
+                </div>
               </div>
-              <div className="text-xs mt-2">{new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(date)}</div>
-              <div>{date.getDate()}</div>
-              <div className="flex items-center gap-1 h-4 flex-none"></div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

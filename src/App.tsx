@@ -12,8 +12,8 @@ import DailyDetailForm from './components/DailyDetailForm'; // Import DailyDetai
 import GoalSelectionBottomSheet from './components/GoalSelectionBottomSheet'; // Import GoalSelectionBottomSheet
 import EvaluationOverlay from './components/EvaluationOverlay';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { db, type Goal, type Task } from './db';
-import { formatDateToYYYYMMDD } from './utils/dateUtils'; // Import formatDateToYYYYMMDD
+import { db, type Goal, type Task, type DailyEvaluation } from './db';
+import {formatDateToYYYYMMDD} from './utils/dateUtils.ts';
 
 // Helper function to check if two dates are in the same month and year
 const isSameMonthYear = (d1: Date, d2: Date) => {
@@ -27,6 +27,8 @@ function App() {
   const [todayScrollTrigger, setTodayScrollTrigger] = useState(0);
 
   const goals = useLiveQuery(() => db.goals.toArray());
+  const tasks = useLiveQuery(() => db.tasks.toArray());
+  const dailyEvaluations = useLiveQuery(() => db.dailyEvaluations.toArray());
   const hasEvaluation = useLiveQuery(async () => {
     const formatted = formatDateToYYYYMMDD(selectedDate);
     const evaluation = await db.dailyEvaluations.get(formatted);
@@ -210,6 +212,9 @@ function App() {
             onSelectToday={handleSelectToday}
             selectedDate={selectedDate}
             todayScrollTrigger={todayScrollTrigger}
+            allGoals={goals || []}
+            allTasks={tasks || []}
+            allDailyEvaluations={dailyEvaluations || []}
           />
           <OngoingGoalsHeader
             goals={goals}
