@@ -55,6 +55,20 @@ export class AppDB extends Dexie {
       tasks: 'id, projectId, goalId, title, completed, date, order', // Added order to index
       dailyEvaluations: 'id, projectId, date',
     });
+
+    this.version(2).upgrade(async (tx) => {
+      // Add 'order' field to existing tasks.
+      // We'll give them an initial order to ensure they appear.
+      // For tasks that don't have an order yet, assign a default.
+      // For simplicity, we can assign a sequential order based on current retrieval.
+      let order = 0;
+      await tx.table('tasks').each((task) => {
+        if (task && typeof task.order === 'undefined') {
+          task.order = order++;
+          tx.table('tasks').put(task); // Update the task in the transaction
+        }
+      });
+    });
   }
 }
 
