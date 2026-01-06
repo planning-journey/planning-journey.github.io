@@ -32,25 +32,39 @@ function App() {
   const [todayScrollTrigger, setTodayScrollTrigger] = useState(0);
   const [showSidebar, setShowSidebar] = useState(false); // State for sidebar visibility
 
-  // Project Management States
-  const [projects, setProjects] = useState<Project[]>(() => {
-    const savedProjects = localStorage.getItem('projects');
-    return savedProjects ? JSON.parse(savedProjects) : [];
-  });
+  const projects = useLiveQuery(() => db.projects.toArray(), []) || [];
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isAddProjectModalOpen, setIsAddProjectModalOpen] = useState(false);
   const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
   const [projectToEdit, setProjectToEdit] = useState<Project | null>(null);
 
-  // Effect to save projects to localStorage whenever they change
+  // Migration Effect from localStorage to IndexedDB
   useEffect(() => {
-    localStorage.setItem('projects', JSON.stringify(projects));
+    const migrateProjects = async () => {
+      const savedProjects = localStorage.getItem('projects');
+      if (savedProjects) {
+        const parsedProjects: Project[] = JSON.parse(savedProjects);
+        if (parsedProjects.length > 0) {
+          await db.projects.bulkAdd(parsedProjects);
+          localStorage.removeItem('projects');
+          console.log('Migrated projects from localStorage to IndexedDB.');
+        }
+      }
+    };
+    migrateProjects();
+  }, []);
+
+  // Effect to manage selected project
+  useEffect(() => {
     if (projects.length > 0 && !selectedProjectId) {
       setSelectedProjectId(projects[0].id); // Select the first project by default
     } else if (projects.length === 0) {
       setSelectedProjectId(null); // No projects, no selection
     }
   }, [projects, selectedProjectId]);
+
+  // Project Management States
+
 
 
   const goals = useLiveQuery(() => db.goals.toArray());
@@ -71,7 +85,8 @@ function App() {
   const [isGoalDetailModalOpen, setGoalDetailModalOpen] = useState(false);
 
   const [goalToEdit, setGoalToEdit] = useState<Goal | null>(null);
-  const [goalToDeleteId, setGoalToDeleteId] = useState<number | null>(null);
+  const [goalToDeleteId, setGoalToDeleteId] = useState<string | null>(null); // Changed to string for project/goal IDs
+  const [projectToDeleteId, setProjectToDeleteId] = useState<string | null>(null); // New state for project deletion
   const [goalForDetail, setGoalForDetail] = useState<Goal | null>(null);
   const [isEvaluationOverlayOpen, setIsEvaluationOverlayOpen] = useState(false);
 
@@ -106,30 +121,22 @@ function App() {
   const formattedSelectedDate = formatDateToYYYYMMDD(selectedDate); // Define formattedSelectedDate here
 
   // Project Management Handlers
-  const handleAddProject = useCallback((name: string) => {
+  const handleAddProject = useCallback(async (name: string) => {
     const newProject: Project = { id: uuidv4(), name };
-    setProjects((prev) => [...prev, newProject]);
+    await db.projects.add(newProject);
     setSelectedProjectId(newProject.id); // Select the newly added project
     showToast(`'${name}' 프로젝트가 추가되었습니다.`);
   }, [showToast]);
 
-  const handleEditProject = useCallback((oldName: string, newName: string) => {
-    setProjects((prev) =>
-      prev.map((project) =>
-        project.name === oldName ? { ...project, name: newName } : project
-      )
-    );
-    showToast(`'${oldName}' 프로젝트가 '${newName}'으로 수정되었습니다.`);
+  const handleEditProject = useCallback(async (id: string, newName: string) => {
+    await db.projects.update(id, { name: newName });
+    showToast(`프로젝트가 '${newName}'으로 수정되었습니다.`);
   }, [showToast]);
 
-  const handleDeleteProject = useCallback((id: string) => {
-    setProjects((prev) => prev.filter((project) => project.id !== id));
-    // If the deleted project was selected, select the first available project or null
-    if (selectedProjectId === id) {
-      setSelectedProjectId(projects.length > 1 ? projects[0].id : null);
-    }
+  const handleDeleteProject = useCallback(async (id: string) => {
+    await db.projects.delete(id);
     showToast('프로젝트가 삭제되었습니다.');
-  }, [projects, selectedProjectId, showToast]);
+  }, [showToast]);
 
   const handleSelectProject = useCallback((id: string) => {
     setSelectedProjectId(id);
@@ -231,6 +238,7 @@ function App() {
   const closeConfirmDeleteModal = () => {
     setConfirmDeleteModalOpen(false);
     setGoalToDeleteId(null);
+    setProjectToDeleteId(null); // Clear project to delete ID
   };
 
   const openGoalDetailModal = (goal: Goal) => {
@@ -255,9 +263,28 @@ function App() {
     if (goalToDeleteId !== null) {
       try {
         await db.goals.delete(goalToDeleteId);
+        showToast('목표가 삭제되었습니다.');
         closeConfirmDeleteModal();
       } catch (error) {
         console.error("Failed to delete goal: ", error);
+        showToast('목표 삭제에 실패했습니다.');
+      }
+    } else if (projectToDeleteId !== null) {
+      try {
+        // Delete project
+        await db.projects.delete(projectToDeleteId);
+        // Delete associated goals
+        await db.goals.where({ projectId: projectToDeleteId }).delete();
+        // Delete associated tasks
+        await db.tasks.where({ projectId: projectToDeleteId }).delete();
+        // Delete associated daily evaluations
+        await db.dailyEvaluations.where({ projectId: projectToDeleteId }).delete();
+
+        showToast('프로젝트 및 모든 관련 데이터가 삭제되었습니다.');
+        closeConfirmDeleteModal();
+      } catch (error) {
+        console.error("Failed to delete project and associated data: ", error);
+        showToast('프로젝트 삭제에 실패했습니다.');
       }
     }
   };
@@ -281,7 +308,10 @@ function App() {
             setProjectToEdit(project);
             setIsEditProjectModalOpen(true);
           }}
-          onDeleteProjectClick={handleDeleteProject}
+          onDeleteProjectRequest={(projectId) => {
+            setProjectToDeleteId(projectId);
+            setConfirmDeleteModalOpen(true);
+          }}
           onSelectProject={handleSelectProject}
           selectedProjectId={selectedProjectId}
         />
@@ -385,8 +415,9 @@ function App() {
           <EditProjectModal
             isOpen={isEditProjectModalOpen}
             onClose={() => setIsEditProjectModalOpen(false)}
-            onEditProject={handleEditProject}
-            currentProjectName={projectToEdit.name}
+            onEditProject={(id, newName) => handleEditProject(id, newName)}
+            projectId={projectToEdit.id}
+            projectName={projectToEdit.name}
           />
         )}
       </div>

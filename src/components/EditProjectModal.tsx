@@ -3,21 +3,22 @@ import React, { useState, useEffect } from 'react';
 interface EditProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onEditProject: (oldName: string, newName: string) => void;
-  currentProjectName: string;
+  onEditProject: (projectId: string, newName: string) => void;
+  projectId: string;
+  projectName: string;
 }
 
-const EditProjectModal: React.FC<EditProjectModalProps> = ({ isOpen, onClose, onEditProject, currentProjectName }) => {
-  const [projectName, setProjectName] = useState(currentProjectName);
+const EditProjectModal: React.FC<EditProjectModalProps> = ({ isOpen, onClose, onEditProject, projectId, projectName }) => {
+  const [newProjectName, setNewProjectName] = useState(projectName);
 
   useEffect(() => {
-    setProjectName(currentProjectName);
-  }, [currentProjectName]);
+    setNewProjectName(projectName);
+  }, [projectName]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (projectName.trim() && projectName.trim() !== currentProjectName) {
-      onEditProject(currentProjectName, projectName);
+    if (newProjectName.trim() && newProjectName.trim() !== projectName) {
+      onEditProject(projectId, newProjectName);
       onClose();
     }
   };

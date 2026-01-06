@@ -8,7 +8,7 @@ interface SidebarProps {
   projects: Project[];
   onAddProjectClick: () => void;
   onEditProjectClick: (project: Project) => void;
-  onDeleteProjectClick: (projectId: string) => void;
+  onDeleteProjectRequest: (projectId: string) => void; // New prop for delete request
   onSelectProject: (projectId: string) => void;
   selectedProjectId: string | null;
 }
@@ -19,7 +19,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   projects,
   onAddProjectClick,
   onEditProjectClick,
-  onDeleteProjectClick,
+  onDeleteProjectRequest, // Changed prop name
   onSelectProject,
   selectedProjectId,
 }) => {
@@ -80,7 +80,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation(); // Prevent selecting project when clicking delete
-                        onDeleteProjectClick(project.id);
+                        onDeleteProjectRequest(project.id); // Call new prop
                       }}
                       className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition-colors duration-200"
                     >

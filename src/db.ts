@@ -1,77 +1,58 @@
-import Dexie, { type Table } from 'dexie';
+// src/db.ts
+import Dexie, { Table } from 'dexie';
+
+export interface Project {
+  id: string;
+  name: string;
+}
 
 export interface Goal {
-  id?: number;
-  name: string;
-  color: string;
-  periodType: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'free';
-  startDate: Date;
-  endDate: Date;
-  createdAt: Date;
-  projectId: string | null; // Add projectId
+  id: string;
+  projectId: string; // Link to Project
+  title: string;
+  startDate: string;
+  endDate: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'archived';
+  // Add other goal-related properties as needed
 }
 
 export interface Task {
-  id?: number;
-  text: string;
-  goalId: number | null;
+  id: string;
+  projectId: string; // Link to Project
+  goalId?: string; // Optional link to Goal
+  title: string;
+  description?: string;
+  dueDate?: string;
   completed: boolean;
-  date: string; // YYYY-MM-DD format
-  description?: string; // Optional description for the task
-  createdAt: Date;
-  projectId: string | null; // Add projectId
+  date: string; // Added date field
+  createdAt?: Date; // It is present in App.tsx
+  text?: string; // It is present in App.tsx
 }
 
 export interface DailyEvaluation {
-  date: string; // YYYY-MM-DD format, primary key
-  evaluationText: string;
-  createdAt: Date;
-  projectId: string | null; // Add projectId
+  id: string;
+  projectId: string; // Link to Project
+  date: string;
+  evaluation: string;
+  evaluationText?: string; // It is present in App.tsx
+  // Add other daily evaluation related properties as needed
 }
 
-export class MySubClassedDexie extends Dexie {
+export class AppDB extends Dexie {
+  projects!: Table<Project>;
   goals!: Table<Goal>;
   tasks!: Table<Task>;
   dailyEvaluations!: Table<DailyEvaluation>;
 
   constructor() {
-    super('planningJourneyDB');
-    this.version(2).stores({
-      goals: '++id, name, startDate, endDate, createdAt' // Primary key and indexed props
-    });
-    this.version(3).stores({
-      goals: '++id, name, startDate, endDate, createdAt',
-      tasks: '++id, goalId, createdAt'
-    });
-    this.version(4).stores({
-      goals: '++id, name, startDate, endDate, createdAt',
-      tasks: '++id, goalId, date, createdAt' // Add date to tasks store
-    });
-    this.version(5).stores({
-      goals: '++id, name, startDate, endDate, createdAt',
-      tasks: '++id, goalId, date, description, createdAt' // Add description to tasks store
-    });
-    this.version(6).stores({
-      goals: '++id, name, startDate, endDate, createdAt',
-      tasks: '++id, goalId, date, description, createdAt',
-      dailyEvaluations: '&date, createdAt' // Primary key is date, createdAt is indexed
-    });
-    this.version(7).stores({
-      goals: '++id, name, startDate, endDate, createdAt',
-      tasks: '++id, goalId, date, description, createdAt, projectId', // Add projectId to tasks store and index it
-      dailyEvaluations: '&date, createdAt'
-    });
-    this.version(8).stores({
-      goals: '++id, name, startDate, endDate, createdAt, projectId', // Add projectId to goals store and index it
-      tasks: '++id, goalId, date, description, createdAt, projectId',
-      dailyEvaluations: '&date, createdAt'
-    });
-    this.version(9).stores({
-      goals: '++id, name, startDate, endDate, createdAt, projectId',
-      tasks: '++id, goalId, date, description, createdAt, projectId',
-      dailyEvaluations: '&date, createdAt, projectId' // Add projectId to dailyEvaluations store and index it
+    super('PlanningJourneyDB');
+    this.version(1).stores({
+      projects: 'id, name',
+      goals: 'id, projectId, title, startDate, endDate',
+      tasks: 'id, projectId, goalId, title, completed, date', // Added date to index
+      dailyEvaluations: 'id, projectId, date',
     });
   }
 }
 
-export const db = new MySubClassedDexie();
+export const db = new AppDB();
