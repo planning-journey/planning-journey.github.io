@@ -29,9 +29,11 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onViewTaskDetail, onToggleTa
     );
   }
 
+  const sortedTasks = [...tasks].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
   return (
     <div className="divide-y divide-slate-200 dark:divide-slate-700">
-      {tasks.map((task) => (
+      {sortedTasks.map((task) => (
         <TaskItem
           key={task.id}
           task={task}
