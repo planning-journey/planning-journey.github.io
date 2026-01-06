@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ClipboardCheck } from 'lucide-react';
 import EvaluationContent from './EvaluationContent'; // Assuming we'll move it here
 
@@ -10,10 +10,34 @@ interface EvaluationOverlayProps {
 }
 
 const EvaluationOverlay: React.FC<EvaluationOverlayProps> = ({ isOpen, onClose, selectedDate, hasEvaluation }) => {
+  const [shouldRender, setShouldRender] = useState(false);
+  const [animateIn, setAnimateIn] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true);
+      // Allow DOM to render before starting animation
+      setTimeout(() => {
+        setAnimateIn(true);
+      }, 50);
+    } else {
+      setAnimateIn(false);
+      // Wait for animation to finish before unmounting
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+      }, 300); // Duration of transition-transform duration-300
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  if (!shouldRender) {
+    return null;
+  }
+
   return (
     <div
       className={`fixed top-0 right-0 bottom-0 w-full bg-white dark:bg-slate-900 shadow-xl z-50 transform transition-transform duration-300 max-w-sm
-        ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        ${animateIn ? 'translate-x-0' : 'translate-x-full'}`}
     >
       <div className="flex items-center justify-between p-4 border-b border-slate-200/50 dark:border-slate-700">
         <div className="flex items-center gap-2">
