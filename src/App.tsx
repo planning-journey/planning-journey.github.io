@@ -398,6 +398,8 @@ function App() {
           onClose={() => setIsBottomSheetOpen(false)}
           onSelectGoal={handleSelectGoal}
           selectedGoalId={selectedGoalId}
+          selectedDate={selectedDate}
+          selectedProjectId={selectedProjectId}
         />
         {isToastVisible && (
           <div className="fixed bottom-4 left-1/2 -translate-x-1/2 p-3 bg-gray-800 text-white rounded-xl shadow-lg transition-all duration-300 z-50">

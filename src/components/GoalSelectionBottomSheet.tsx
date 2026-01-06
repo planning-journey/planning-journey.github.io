@@ -2,12 +2,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { db } from '../db';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { formatDateToYYYYMMDD } from '../utils/dateUtils';
 
 interface GoalSelectionBottomSheetProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectGoal: (goalId: string | null) => void; // Changed to string | null
-  selectedGoalId: string | null; // Changed to string | null
+  onSelectGoal: (goalId: string | null) => void;
+  selectedGoalId: string | null;
+  selectedDate: Date;
+  selectedProjectId: string | null;
 }
 
 const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
@@ -15,15 +18,27 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
   onClose,
   onSelectGoal,
   selectedGoalId,
+  selectedDate,
+  selectedProjectId,
 }) => {
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const sheetRef = useRef<HTMLDivElement>(null);
 
-  const allGoals = useLiveQuery(
+  const filteredGoals = useLiveQuery(
     async () => {
-      return db.goals.toArray(); // Simply get all goals
+      if (!selectedProjectId) return [];
+      const formattedDate = formatDateToYYYYMMDD(selectedDate);
+      
+      const goals = await db.goals
+        .where('projectId')
+        .equals(selectedProjectId)
+        .toArray();
+
+      return goals.filter(goal => {
+        return goal.startDate <= formattedDate && goal.endDate >= formattedDate;
+      });
     },
-    []
+    [selectedDate, selectedProjectId]
   );
 
   useEffect(() => {
@@ -31,19 +46,19 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
       sheetRef.current?.focus();
       const initialIndex = selectedGoalId === null
         ? 0
-        : (allGoals?.findIndex(goal => goal.id === selectedGoalId) ?? -1) + 1;
+        : (filteredGoals?.findIndex(goal => goal.id === selectedGoalId) ?? -1) + 1;
       if (initialIndex !== -1 && initialIndex !== activeIndex) {
         setActiveIndex(initialIndex);
       }
     }
-  }, [isOpen, allGoals, selectedGoalId]);
+  }, [isOpen, filteredGoals, selectedGoalId]);
 
   if (!isOpen) return null;
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (!allGoals) return;
+    if (!filteredGoals) return;
 
-    const totalItems = allGoals.length + 1; // +1 for "선택 안함"
+    const totalItems = filteredGoals.length + 1; // +1 for "선택 안함"
 
     if (event.key === 'ArrowDown') {
       event.preventDefault();
@@ -56,7 +71,7 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
       if (activeIndex === 0) {
         onSelectGoal(null);
       } else {
-        const selected = allGoals[activeIndex - 1];
+        const selected = filteredGoals[activeIndex - 1];
         if (selected) {
           onSelectGoal(selected.id || null);
         }
@@ -90,7 +105,7 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
           </button>
         </div>
         <div className="mt-4 max-h-60 overflow-y-auto">
-          {allGoals && allGoals.length > 0 ? (
+          {filteredGoals && filteredGoals.length > 0 ? (
             <ul className="space-y-2">
               <li
                 className={`flex cursor-pointer items-center justify-between rounded-xl p-3 transition-all duration-300
@@ -109,7 +124,7 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
                   </svg>
                 )}
               </li>
-              {allGoals.map((goal, index) => (
+              {filteredGoals.map((goal, index) => (
                 <li
                   key={goal.id}
                   className={`flex cursor-pointer items-center justify-between rounded-xl p-3 transition-all duration-300
@@ -137,7 +152,26 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
               ))}
             </ul>
           ) : (
-            <p className="text-center text-gray-500 dark:text-slate-400">활동 중인 목표가 없습니다.</p>
+            <div className="space-y-2">
+               <li
+                className={`flex cursor-pointer items-center justify-between rounded-xl p-3 transition-all duration-300
+                  ${selectedGoalId === null ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}
+                  ${activeIndex === 0 ? 'bg-gray-100 dark:bg-slate-700' : 'hover:bg-gray-50 dark:hover:bg-slate-700'}`}
+                onClick={() => onSelectGoal(null)}
+              >
+                <span className="text-gray-700 dark:text-slate-200">선택 안함</span>
+                {selectedGoalId === null && (
+                  <svg className="h-5 w-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+              </li>
+              <p className="py-8 text-center text-gray-500 dark:text-slate-400">해당 날짜에 활동 중인 목표가 없습니다.</p>
+            </div>
           )}
         </div>
       </div>
