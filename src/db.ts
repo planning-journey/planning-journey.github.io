@@ -1,5 +1,5 @@
 // src/db.ts
-import Dexie, { Table } from 'dexie';
+import Dexie, { type Table } from 'dexie';
 
 export interface Project {
   id: string;
@@ -36,6 +36,7 @@ export interface DailyEvaluation {
   date: string;
   evaluation: string;
   evaluationText?: string; // It is present in App.tsx
+  createdAt?: Date;
   // Add other daily evaluation related properties as needed
 }
 

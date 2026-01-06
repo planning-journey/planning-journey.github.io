@@ -17,7 +17,7 @@ import EditProjectModal from './components/EditProjectModal'; // Import EditProj
 import { ThemeProvider } from './contexts/ThemeContext';
 import { db, type Goal, type Task } from './db';
 import {formatDateToYYYYMMDD} from './utils/dateUtils.ts';
-import { Project } from './types/project'; // Import Project interface
+import type { Project } from './types/project'; // Import Project interface
 import { v4 as uuidv4 } from 'uuid'; // Import uuid for unique IDs
 
 // Helper function to check if two dates are in the same month and year
@@ -95,7 +95,7 @@ function App() {
   // States lifted from DailyDetailArea
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [currentTaskText, setCurrentTaskText] = useState('');
-  const [selectedGoalId, setSelectedGoalId] = useState<number | null>(null);
+  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
   const dailyDetailFormInputRef = useRef<HTMLInputElement>(null);
   const stickyHeaderRef = useRef<HTMLDivElement>(null);
   const dailyDetailFormWrapperRef = useRef<HTMLDivElement>(null);
@@ -104,7 +104,7 @@ function App() {
   const [isToastVisible, setIsToastVisible] = useState(false);
 
   // New state for scrolling
-  const [latestAddedTaskId, setLatestAddedTaskId] = useState<number | null>(null);
+  const [latestAddedTaskId, setLatestAddedTaskId] = useState<string | null>(null);
   const [stickyHeaderHeight, setStickyHeaderHeight] = useState(0);
   const [dailyDetailFormHeight, setDailyDetailFormHeight] = useState(0);
 
@@ -133,27 +133,25 @@ function App() {
     showToast(`프로젝트가 '${newName}'으로 수정되었습니다.`);
   }, [showToast]);
 
-  const handleDeleteProject = useCallback(async (id: string) => {
-    await db.projects.delete(id);
-    showToast('프로젝트가 삭제되었습니다.');
-  }, [showToast]);
+
 
   const handleSelectProject = useCallback((id: string) => {
     setSelectedProjectId(id);
     setShowSidebar(false); // Close sidebar on project selection
   }, []);
 
-  const addOrUpdateTask = useCallback(async (text: string, goalId: number | null, date: string) => {
+  const addOrUpdateTask = useCallback(async (title: string, goalId: string | null | undefined, date: string) => {
     const newTask: Task = {
-      text: text,
-      goalId: goalId,
+      id: uuidv4(), // Generate unique ID
+      title: title,
+      goalId: goalId === null ? undefined : goalId, // Assign undefined if null
       completed: false,
       date: date,
       createdAt: new Date(),
-      projectId: selectedProjectId, // Assign current selected project ID
+      projectId: selectedProjectId as string, // Assign current selected project ID
     };
-    const newTaskId = await db.tasks.add(newTask);
-    setLatestAddedTaskId(newTaskId); // Set the ID of the newly added task
+    await db.tasks.add(newTask);
+    setLatestAddedTaskId(newTask.id); // Set the ID of the newly added task
     setCurrentTaskText('');
     if (dailyDetailFormInputRef.current) {
       dailyDetailFormInputRef.current.focus();
@@ -176,17 +174,17 @@ function App() {
     setCurrentTaskText(text); // Store the text for later use
 
     if (!goals || goals.length === 0) { // Check if goals array is empty
-      await addOrUpdateTask(text, null, formattedSelectedDate);
+      await addOrUpdateTask(text, undefined, formattedSelectedDate);
       showToast('목표가 없습니다'); // Display toast message
     } else {
       setIsBottomSheetOpen(true); // Open bottom sheet if goals exist
     }
   }, [goals, addOrUpdateTask, showToast, formattedSelectedDate]);
 
-  const handleSelectGoal = useCallback(async (goalId: number | null) => {
+  const handleSelectGoal = useCallback((goalId: string | null) => {
     setSelectedGoalId(goalId);
     setIsBottomSheetOpen(false);
-    await addOrUpdateTask(currentTaskText, goalId, formattedSelectedDate);
+    addOrUpdateTask(currentTaskText, goalId, formattedSelectedDate);
   }, [currentTaskText, formattedSelectedDate, addOrUpdateTask]);
 
   const handleDateSelect = useCallback((date: Date) => {
@@ -212,7 +210,7 @@ function App() {
     setGoalToEdit(null);
   };
 
-  const openNewGoalEditorModal = (projectId: string | null) => {
+  const openNewGoalEditorModal = () => {
     setGoalToEdit(null);
     setGoalManagementModalOpen(false);
     setGoalEditorModalOpen(true);
@@ -230,7 +228,7 @@ function App() {
     setGoalManagementModalOpen(true);
   };
 
-  const openConfirmDeleteModal = (id: number) => {
+  const openConfirmDeleteModal = (id: string) => {
     setGoalToDeleteId(id);
     setConfirmDeleteModalOpen(true);
   };

@@ -10,19 +10,7 @@ interface OngoingGoalsHeaderProps {
   selectedProjectId: string | null; // Add selectedProjectId prop
 }
 
-const isUrgentGoal = (endDate: Date, compareDate: Date): boolean => {
-  const current = new Date(compareDate);
-  current.setHours(0, 0, 0, 0);
-
-  const end = new Date(endDate);
-  end.setHours(0, 0, 0, 0);
-
-  const diffTime = end.getTime() - current.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  // Urgent if diffDays is between 0 and 7 (inclusive)
-  return diffDays >= 0 && diffDays <= 7;
-};
+import { getDdayInfo } from '../utils/dateUtils';
 
 
 const OngoingGoalsHeader = ({ goals, selectedDate, onGoalSelect, selectedProjectId }: OngoingGoalsHeaderProps) => {
@@ -66,7 +54,7 @@ const OngoingGoalsHeader = ({ goals, selectedDate, onGoalSelect, selectedProject
 
   const urgentGoals = useMemo(() => {
     if (!filteredGoals) return [];
-    return filteredGoals.filter(goal => isUrgentGoal(goal.endDate, selectedDate));
+    return filteredGoals.filter(goal => getDdayInfo(goal.endDate, selectedDate).isUrgent);
   }, [filteredGoals, selectedDate]);
 
   return (

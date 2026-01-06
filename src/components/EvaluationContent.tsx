@@ -41,8 +41,8 @@ const EvaluationContent = React.forwardRef<EvaluationContentRef, EvaluationConte
           .first();
 
         if (dailyEvaluation) {
-          setContent(dailyEvaluation.evaluationText);
-          setEditedContent(dailyEvaluation.evaluationText);
+          setContent(dailyEvaluation.evaluationText || '');
+          setEditedContent(dailyEvaluation.evaluationText || '');
         } else {
           setContent('');
           setEditedContent('');

@@ -6,29 +6,7 @@ interface GoalListProps {
   currentDate: Date;
 }
 
-const getDdayInfo = (endDate: Date, selectedDate: Date): { text: string; isUrgent: boolean } => {
-  const current = new Date(selectedDate);
-  current.setHours(0, 0, 0, 0);
-
-  const end = new Date(endDate);
-  end.setHours(0, 0, 0, 0);
-
-  const diffTime = end.getTime() - current.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  const isUrgent = diffDays >= 0 && diffDays <= 7;
-
-  let text;
-  if (diffDays === 0) {
-    text = 'D-Day';
-  } else if (diffDays > 0) {
-    text = `D-${diffDays}`;
-  } else {
-    text = `D+${Math.abs(diffDays)}`;
-  }
-
-  return { text, isUrgent };
-};
+import { getDdayInfo } from '../utils/dateUtils';
 
 const GoalList = ({ goals, onGoalSelect, currentDate }: GoalListProps) => {
   return (

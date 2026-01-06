@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, Plus, Edit, Trash2, Sun, Moon, Monitor } from 'lucide-react'; // Import theme icons
-import { type Project } from '../types/project'; // Import Project interface
+import { type Project } from '../../src/types/project'; // Import Project interface
 import { useTheme } from '../contexts/ThemeContext'; // Import useTheme hook
 
 interface SidebarProps {

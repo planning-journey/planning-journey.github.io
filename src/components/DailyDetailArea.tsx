@@ -24,7 +24,7 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ formattedSelectedDate
       ? db.tasks
           .where({ date: formattedSelectedDate, projectId: selectedProjectId })
           .toArray()
-      : Promise.resolve([]), // If no project selected, return empty array
+      : Promise.resolve([]) as Promise<Task[]>, // If no project selected, return empty array
     [formattedSelectedDate, selectedProjectId] // Re-run query when formattedSelectedDate or selectedProjectId changes
   );
 
@@ -38,19 +38,9 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ formattedSelectedDate
     setIsTaskDetailModalOpen(true);
   };
 
-  const handleSaveEditedTask = async (updatedTask: Task) => {
+  const handleSaveEditedTask = async (task: Task) => {
     try {
-      if (updatedTask.id) {
-        await db.tasks.put(updatedTask);
-      } else {
-        // For new tasks, generate a UUID and assign projectId
-        const newTaskWithId: Task = {
-          ...updatedTask,
-          id: crypto.randomUUID(),
-          projectId: selectedProjectId!, // Ensure projectId is assigned for new tasks
-        };
-        await db.tasks.add(newTaskWithId);
-      }
+      await db.tasks.put(task); // Use put for both add and update as it handles both
     } catch (error) {
       console.error("Failed to save task: ", error);
     } finally {
@@ -87,6 +77,7 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ formattedSelectedDate
         }}
         taskToEdit={taskToEdit}
         onSave={handleSaveEditedTask}
+        selectedProjectId={selectedProjectId as string} // Pass selectedProjectId
       />
       <TaskDetailModal
         isOpen={isTaskDetailModalOpen}

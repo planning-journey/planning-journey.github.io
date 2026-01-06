@@ -57,11 +57,7 @@ const getEndOfWeek = (date: Date, weekStartsOn: 0 | 1 = 0) => {
   end.setHours(23, 59, 59, 999); // Normalize to end of day
   return end;
 };
-// Simple format function (not as robust as date-fns, but sufficient for display)
-const formatDate = (date: Date | null) => {
-  if (!date) return '';
-  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
-};
+import { formatDateForDisplay } from '../utils/dateUtils';
 
 // Helper to compare dates (considering null)
 const datesAreEqual = (date1: Date | null, date2: Date | null) => {
@@ -344,8 +340,8 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: Goa
               {/* Display calculated date range */}
               {(startDate && endDate) && (
                 <div className="text-sm text-gray-500 dark:text-slate-400 mt-2">
-                  <p>시작일: {formatDate(startDate)}</p>
-                  <p>종료일: {formatDate(endDate)}</p>
+                  <p>시작일: {formatDateForDisplay(startDate)}</p>
+                  <p>종료일: {formatDateForDisplay(endDate)}</p>
                 </div>
               )}
             </div>

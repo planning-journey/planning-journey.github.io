@@ -14,14 +14,7 @@ const periodTypeMap = {
   free: '자유',
 };
 
-const formatDate = (date: Date | null) => {
-  if (!date) return '';
-  return new Date(date).toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-};
+import { formatDateForDisplay } from '../utils/dateUtils';
 
 const GoalDetailModal = ({ isOpen, onClose, goal }: GoalDetailModalProps) => {
   if (!isOpen || !goal) return null;
@@ -50,15 +43,15 @@ const GoalDetailModal = ({ isOpen, onClose, goal }: GoalDetailModalProps) => {
           </div>
           <div className="flex justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
             <span className="font-semibold text-slate-600 dark:text-slate-300">시작일</span>
-            <span className="font-medium text-slate-800 dark:text-slate-100">{formatDate(goal.startDate)}</span>
+            <span className="font-medium text-slate-800 dark:text-slate-100">{formatDateForDisplay(goal.startDate)}</span>
           </div>
           <div className="flex justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
             <span className="font-semibold text-slate-600 dark:text-slate-300">종료일</span>
-            <span className="font-medium text-slate-800 dark:text-slate-100">{formatDate(goal.endDate)}</span>
+            <span className="font-medium text-slate-800 dark:text-slate-100">{formatDateForDisplay(goal.endDate)}</span>
           </div>
            <div className="flex justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
             <span className="font-semibold text-slate-600 dark:text-slate-300">생성일</span>
-            <span className="font-medium text-slate-800 dark:text-slate-100">{formatDate(goal.createdAt)}</span>
+            <span className="font-medium text-slate-800 dark:text-slate-100">{formatDateForDisplay(goal.createdAt)}</span>
           </div>
         </div>
 

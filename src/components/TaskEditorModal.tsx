@@ -4,17 +4,19 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import GoalAutocomplete from './GoalAutocomplete';
 import DateSelectorModal from './DateSelectorModal';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
-import { formatDateToYYYYMMDD, parseYYYYMMDDToDate } from '../utils/dateUtils';
+import { formatDateToYYYYMMDD, parseYYYYMMDDToDate, formatDateForDisplay } from '../utils/dateUtils';
 import useBodyScrollLock from '../utils/useBodyScrollLock';
+import { v4 as uuidv4 } from 'uuid'; // Import uuid for unique IDs
 
 interface TaskEditorModalProps {
   isOpen: boolean;
   onClose: () => void;
   taskToEdit?: Task | null;
   onSave: (task: Task) => void;
+  selectedProjectId: string; // Add selectedProjectId prop
 }
 
-const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, taskToEdit, onSave }) => {
+const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, taskToEdit, onSave, selectedProjectId }) => {
   useBodyScrollLock(isOpen);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -77,17 +79,19 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
       return;
     }
 
-    const updatedTask: Task = {
-      ...taskToEdit,
-      title: title, // Use title
+    const taskData: Task = {
+      id: taskToEdit ? taskToEdit.id : uuidv4(), // Use existing ID or generate new
+      projectId: selectedProjectId,
+      title: title,
       description: description,
       date: selectedDate,
-      goalId: selectedGoalId === undefined ? undefined : selectedGoalId || undefined, // Ensure string or undefined
+      goalId: selectedGoalId === undefined ? undefined : selectedGoalId || undefined,
       completed: taskToEdit?.completed || false,
       createdAt: taskToEdit?.createdAt || new Date(),
+      dueDate: taskToEdit?.dueDate, // Carry over dueDate if exists
     };
 
-    onSave(updatedTask);
+    onSave(taskData);
     onClose();
   };
 
@@ -104,11 +108,7 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
     setIsDateSelectorModalOpen(false);
   };
 
-  const formatDateForDisplay = (dateString: string | null) => {
-    if (!dateString) return '날짜 미지정';
-    const date = parseYYYYMMDDToDate(dateString);
-    return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
-  };
+  // Remove the local formatDateForDisplay and use the imported one
 
   return (
     <div className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${animated ? 'opacity-100' : 'opacity-0'}`}
