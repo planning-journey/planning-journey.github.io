@@ -22,7 +22,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-800 shadow-lg z-40
           transform transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-          md:translate-x-0 md:static md:shadow-none md:flex md:flex-col`}
+          md:translate-x-0 md:static md:shadow-none md:flex md:flex-col md:border-r md:border-slate-200/50 dark:md:border-slate-700`}
       >
         <div className="p-4 flex items-center justify-between border-b border-slate-200/50 dark:border-slate-700 md:hidden">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">메뉴</h2>
