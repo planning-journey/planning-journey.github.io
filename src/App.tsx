@@ -30,7 +30,7 @@ function App() {
   const hasEvaluation = useLiveQuery(async () => {
     const formatted = formatDateToYYYYMMDD(selectedDate);
     const evaluation = await db.dailyEvaluations.get(formatted);
-    return !!evaluation;
+    return !!evaluation && !!evaluation.evaluationText && evaluation.evaluationText.trim().length > 0;
   }, [selectedDate]);
 
   const [isGoalManagementModalOpen, setGoalManagementModalOpen] = useState(false);
