@@ -14,14 +14,14 @@ const BUFFER_DAYS = 30; // Number of extra days to render on each side of the vi
 
 const isSameDay = (d1: Date, d2: Date) => {
   return d1.getFullYear() === d2.getFullYear() &&
-         d1.getMonth() === d2.getMonth() &&
-         d1.getDate() === d2.getDate();
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate();
 };
 
 // Helper function to check if two dates are in the same month and year
 const isSameMonthYear = (d1: Date, d2: Date) => {
   return d1.getFullYear() === d2.getFullYear() &&
-         d1.getMonth() === d2.getMonth();
+    d1.getMonth() === d2.getMonth();
 };
 
 
@@ -174,7 +174,7 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
       <div
         ref={scrollRef}
         className="flex overflow-x-auto custom-scrollbar-hide pb-2 px-2 relative"
-        style={{ height: '70px' }}
+        style={{ height: 'calc(1rem + 0.5rem + 1rem + 1.5rem + 1rem + 0.5rem)' }}
       >
         <div
           ref={contentRef}
@@ -192,20 +192,21 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
           {renderedDates.map((date) => (
             <div
               key={date.toISOString()}
-              className={`flex-none w-14 text-center cursor-pointer relative pb-1
+              className={`flex-none w-14 text-center select-none cursor-pointer relative pb-1 rounded-xl
                 ${isSameDay(date, new Date()) ? 'font-bold text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300'}
-                ${isSameDay(date, selectedDateProp) ? 'bg-indigo-100 dark:bg-indigo-900 rounded-xl' : ''}
+                ${isSameDay(date, selectedDateProp) ? 'bg-indigo-100 dark:bg-indigo-900' : ''}
                 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 p-1 mx-1
               `}
               onClick={() => handleDateClick(date)}
             >
-              {date.getDate() === 1 && (
-                <div className="absolute top-0 left-0 right-0 -mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  {new Intl.DateTimeFormat('ko-KR', { month: 'numeric' }).format(date)}월
-                </div>
-              )}
+              <div className="text-xs text-slate-500/50 dark:text-slate-400 h-4">
+                {date.getDate() === 1 && (
+                  <span>{new Intl.DateTimeFormat('ko-KR', { month: 'numeric' }).format(date)}</span>
+                )}
+              </div>
               <div className="text-xs mt-2">{new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(date)}</div>
-              <div className="text-lg leading-none">{date.getDate()}</div>
+              <div>{date.getDate()}</div>
+              <div className="flex items-center gap-1 h-4 flex-none"></div>
             </div>
           ))}
         </div>
