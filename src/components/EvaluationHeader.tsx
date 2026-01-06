@@ -1,4 +1,4 @@
-import { ClipboardCheck } from 'lucide-react';
+import {ChevronRight, ClipboardCheck} from 'lucide-react';
 
 
 interface EvaluationHeaderProps {
@@ -9,9 +9,6 @@ interface EvaluationHeaderProps {
 }
 
 const EvaluationHeader: React.FC<EvaluationHeaderProps> = ({ hasEvaluation, onOpenEvaluationOverlay }) => {
-
-
-
   return (
     <div className="bg-white dark:bg-slate-900/70 backdrop-blur-sm border-t border-slate-200/50 dark:border-slate-700">
       <div className="flex items-center justify-between p-4 cursor-pointer" onClick={onOpenEvaluationOverlay}>
@@ -22,6 +19,10 @@ const EvaluationHeader: React.FC<EvaluationHeaderProps> = ({ hasEvaluation, onOp
             <div className="w-2 h-2 bg-green-400 rounded-full ml-1"></div>
           )}
         </div>
+
+        <ChevronRight
+          className={`w-5 h-5 text-slate-500`}
+        />
       </div>
     </div>
   );

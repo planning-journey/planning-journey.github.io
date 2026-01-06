@@ -1,6 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
-import { Settings, Flag, Sun, Moon, Monitor, Check, Calendar, Menu } from 'lucide-react'; // Import Calendar and Menu icons
-import { useTheme } from '../contexts/ThemeContext'; // Import useTheme hook
+import {Flag, Calendar, ChevronRight} from 'lucide-react'; // Import Calendar and Menu icons
 import InlineCalendar from './InlineCalendar'; // Import InlineCalendar
 import { type Goal, type Task, type DailyEvaluation } from '../db'; // Import types
 
@@ -21,22 +19,19 @@ interface HeaderProps {
 }
 
 const Header = ({ onOpenModal, onDateSelect, currentCalendarViewDate, onCalendarViewChange, onSelectToday, selectedDate, todayScrollTrigger, allGoals, allTasks, allDailyEvaluations, onToggleSidebar, selectedProjectName, selectedProjectId }: HeaderProps) => {
-  const { theme, setTheme } = useTheme();
-
   const formattedMonthYear = new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long' }).format(currentCalendarViewDate);
 
   return (
     <header className="flex flex-col border-b border-slate-200/50 dark:border-slate-700 bg-white dark:bg-gray-900 pb-2">
-      <div className="flex items-center justify-between p-4">
+      <div className="flex items-center justify-between py-4 pr-4 md:pl-4">
         <div className="flex items-center gap-2"> {/* Added flex container for hamburger and title */}
           <button
             onClick={onToggleSidebar}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300 md:hidden"
+            className="p-2 rounded-r-2xl bg-slate-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300 md:hidden"
           >
-            <Menu className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            <ChevronRight className="w-5 h-5 text-gray-500 dark:text-gray-400" />
           </button>
           <div className="flex flex-col">
-            <h1 className="text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400">PLANNING JOURNEY</h1>
             {selectedProjectName && (
               <h2 className="text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400">{selectedProjectName}</h2>
             )}
@@ -54,8 +49,6 @@ const Header = ({ onOpenModal, onDateSelect, currentCalendarViewDate, onCalendar
           </div>
         </div>
         <div className="flex items-center gap-4 relative">
-
-
           {/* Goal Management Button */}
           <button
             onClick={onOpenModal}
