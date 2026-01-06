@@ -57,7 +57,7 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
       if (activeIndex === 0) {
         onSelectGoal(null);
       } else {
-        const selected = activeGoals[activeIndex - 1];
+        const selected = allGoals[activeIndex - 1];
         if (selected) {
           onSelectGoal(selected.id || null);
         }
