@@ -21,7 +21,16 @@ const isSameMonthYear = (d1: Date, d2: Date) => {
 };
 
 function App() {
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [currentCalendarViewDate, setCurrentCalendarViewDate] = useState<Date>(new Date());
+  const [todayScrollTrigger, setTodayScrollTrigger] = useState(0);
+
   const goals = useLiveQuery(() => db.goals.toArray());
+  const hasEvaluation = useLiveQuery(async () => {
+    const formatted = formatDateToYYYYMMDD(selectedDate);
+    const evaluation = await db.dailyEvaluations.get(formatted);
+    return !!evaluation;
+  }, [selectedDate]);
 
   const [isGoalManagementModalOpen, setGoalManagementModalOpen] = useState(false);
   const [isGoalEditorModalOpen, setGoalEditorModalOpen] = useState(false);
@@ -31,9 +40,8 @@ function App() {
   const [goalToEdit, setGoalToEdit] = useState<Goal | null>(null);
   const [goalToDeleteId, setGoalToDeleteId] = useState<number | null>(null);
   const [goalForDetail, setGoalForDetail] = useState<Goal | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [currentCalendarViewDate, setCurrentCalendarViewDate] = useState<Date>(new Date());
-  const [todayScrollTrigger, setTodayScrollTrigger] = useState(0);
+
+
 
   // States lifted from DailyDetailArea
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
@@ -210,7 +218,7 @@ function App() {
 
         <div ref={dailyDetailFormWrapperRef} className="sticky bottom-0 z-10 bg-white dark:bg-slate-900 shadow-lg">
           <DailyDetailForm onAddTask={handleAddTask} selectedDate={selectedDate} ref={dailyDetailFormInputRef} />
-          <EvaluationHeader selectedDate={selectedDate} stickyHeaderHeight={stickyHeaderHeight} dailyDetailFormHeight={dailyDetailFormHeight} />
+          <EvaluationHeader selectedDate={selectedDate} stickyHeaderHeight={stickyHeaderHeight} dailyDetailFormHeight={dailyDetailFormHeight} hasEvaluation={hasEvaluation || false} />
         </div>
 
         <GoalManagementModal
