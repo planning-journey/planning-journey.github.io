@@ -2,12 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { db } from '../db';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { formatDateToYYYYMMDD } from '../utils/dateUtils'; // Import the helper
 
 interface GoalSelectionBottomSheetProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectGoal: (goalId: number | null) => void;
-  selectedGoalId: number | null;
+  onSelectGoal: (goalId: string | null) => void; // Changed to string | null
+  selectedGoalId: string | null; // Changed to string | null
 }
 
 const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
@@ -22,10 +23,11 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
   const activeGoals = useLiveQuery(
     async () => {
       const now = new Date();
+      const formattedNow = formatDateToYYYYMMDD(now); // Convert now to YYYY-MM-DD string
       return db.goals
         .where('startDate')
-        .belowOrEqual(now)
-        .and((goal) => goal.endDate >= now)
+        .belowOrEqual(formattedNow) // Compare string with string
+        .and((goal) => goal.endDate >= formattedNow) // Compare string with string
         .toArray();
     },
     []

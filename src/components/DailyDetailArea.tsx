@@ -22,9 +22,7 @@ const DailyDetailArea: React.FC<DailyDetailAreaProps> = ({ formattedSelectedDate
   const tasks = useLiveQuery(() =>
     selectedProjectId
       ? db.tasks
-          .where('date')
-          .equals(formattedSelectedDate)
-          .and(task => task.projectId === selectedProjectId)
+          .where({ date: formattedSelectedDate, projectId: selectedProjectId })
           .toArray()
       : Promise.resolve([]), // If no project selected, return empty array
     [formattedSelectedDate, selectedProjectId] // Re-run query when formattedSelectedDate or selectedProjectId changes
