@@ -211,7 +211,7 @@ function App() {
       <div className="font-sans text-gray-900 dark:text-white min-h-screen bg-gray-100 dark:bg-slate-900 flex">
         <Sidebar isOpen={showSidebar} onClose={() => setShowSidebar(false)} />
 
-        <div className="flex-1 flex flex-col overflow-hidden"> {/* Main content area */}
+        <div className="flex-1 flex flex-col md:pl-64"> {/* Main content area */}
           <div ref={stickyHeaderRef} className="sticky top-0 z-10">
             <Header
               onOpenModal={openGoalManagementModal}
