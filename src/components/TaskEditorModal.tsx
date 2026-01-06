@@ -89,6 +89,7 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
       completed: taskToEdit?.completed || false,
       createdAt: taskToEdit?.createdAt || new Date(),
       dueDate: taskToEdit?.dueDate, // Carry over dueDate if exists
+      order: taskToEdit ? taskToEdit.order : 0, // Assign order, 0 for new tasks (will be overwritten by App.tsx)
     };
 
     onSave(taskData);

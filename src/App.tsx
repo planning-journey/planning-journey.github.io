@@ -141,6 +141,14 @@ function App() {
   }, []);
 
   const addOrUpdateTask = useCallback(async (title: string, goalId: string | null | undefined, date: string) => {
+    const existingTasks = await db.tasks
+      .where({ date: date, projectId: selectedProjectId as string })
+      .toArray();
+
+    const maxOrder = existingTasks.length > 0
+      ? Math.max(...existingTasks.map(task => task.order))
+      : -1; // Start with -1 so first task gets order 0
+
     const newTask: Task = {
       id: uuidv4(), // Generate unique ID
       title: title,
@@ -149,6 +157,7 @@ function App() {
       date: date,
       createdAt: new Date(),
       projectId: selectedProjectId as string, // Assign current selected project ID
+      order: maxOrder + 1, // Assign order
     };
     await db.tasks.add(newTask);
     setLatestAddedTaskId(newTask.id); // Set the ID of the newly added task

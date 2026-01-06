@@ -28,6 +28,7 @@ export interface Task {
   completed: boolean;
   date: string; // Added date field
   createdAt?: Date; // It is present in App.tsx
+  order: number; // New order field
 }
 
 export interface DailyEvaluation {
@@ -51,7 +52,7 @@ export class AppDB extends Dexie {
     this.version(1).stores({
       projects: 'id, name',
       goals: 'id, projectId, title, startDate, endDate',
-      tasks: 'id, projectId, goalId, title, completed, date', // Added date to index
+      tasks: 'id, projectId, goalId, title, completed, date, order', // Added order to index
       dailyEvaluations: 'id, projectId, date',
     });
   }
