@@ -6,9 +6,8 @@ export const formatDateToYYYYMMDD = (date: Date): string => {
     return `${year}-${month}-${day}`;
 };
 
-export const parseYYYYMMDDToDate = (dateString: string): Date => {
-    const [year, month, day] = dateString.split('-').map(Number);
-    return new Date(year, month - 1, day); // Month is 0-indexed in Date constructor
+export const formateYYYYMMDDToDate = (dateString: string): Date => {
+  return new Date(dateString);
 };
 
 export const formatDateForDisplay = (date: Date | string | null | undefined): string => {
@@ -16,7 +15,7 @@ export const formatDateForDisplay = (date: Date | string | null | undefined): st
 
     let dateObj: Date;
     if (typeof date === 'string') {
-        dateObj = parseYYYYMMDDToDate(date);
+        dateObj = formateYYYYMMDDToDate(date);
     } else {
         dateObj = date;
     }
@@ -29,7 +28,7 @@ export const formatDateForDisplay = (date: Date | string | null | undefined): st
 };
 
 export const getDdayInfo = (endDateString: string, selectedDate: Date): { text: string; isUrgent: boolean } => {
-    const endDate = parseYYYYMMDDToDate(endDateString);
+    const endDate = formateYYYYMMDDToDate(endDateString);
     endDate.setHours(0, 0, 0, 0); // Normalize to start of day
 
     selectedDate.setHours(0, 0, 0, 0); // Normalize to start of day

@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { db, type Task } from '../db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { CalendarDays, Tag, Edit, Trash, X } from 'lucide-react';
-import { parseYYYYMMDDToDate } from '../utils/dateUtils';
+import { formateYYYYMMDDToDate } from '../utils/dateUtils';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import useBodyScrollLock from '../utils/useBodyScrollLock';
 
@@ -45,7 +45,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ isOpen, onClose, task
   }
 
   const formatDateForDisplay = (dateString: string) => {
-    const date = parseYYYYMMDDToDate(dateString);
+    const date = formateYYYYMMDDToDate(dateString);
     return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
   };
 

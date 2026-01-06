@@ -4,7 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import GoalAutocomplete from './GoalAutocomplete';
 import DateSelectorModal from './DateSelectorModal';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
-import { formatDateToYYYYMMDD, parseYYYYMMDDToDate, formatDateForDisplay } from '../utils/dateUtils';
+import { formatDateToYYYYMMDD, formateYYYYMMDDToDate, formatDateForDisplay } from '../utils/dateUtils';
 import useBodyScrollLock from '../utils/useBodyScrollLock';
 import { v4 as uuidv4 } from 'uuid'; // Import uuid for unique IDs
 
@@ -212,7 +212,7 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
         isOpen={isDateSelectorModalOpen}
         onClose={() => setIsDateSelectorModalOpen(false)}
         onSelectDate={handleSelectNewDate}
-        initialDate={selectedDate ? parseYYYYMMDDToDate(selectedDate) : new Date()}
+        initialDate={selectedDate ? formateYYYYMMDDToDate(selectedDate) : new Date()}
       />
     </div>
   );
