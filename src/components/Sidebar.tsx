@@ -47,14 +47,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           </button>
         </div>
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          {/* Sidebar content goes here */}
-          <div className="p-2 text-gray-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200">
-            사이드바 항목 1
-          </div>
-          <div className="p-2 text-gray-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200">
-            사이드바 항목 2
-          </div>
-
           <div className="mt-4">
             <button
               onClick={onAddProjectClick}

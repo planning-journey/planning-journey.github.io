@@ -8,9 +8,10 @@ interface EvaluationOverlayProps {
   onClose: () => void;
   selectedDate: Date;
   hasEvaluation: boolean;
+  selectedProjectId: string | null; // Add selectedProjectId prop
 }
 
-const EvaluationOverlay: React.FC<EvaluationOverlayProps> = ({ isOpen, onClose, selectedDate, hasEvaluation }) => {
+const EvaluationOverlay: React.FC<EvaluationOverlayProps> = ({ isOpen, onClose, selectedDate, hasEvaluation, selectedProjectId }) => {
   useBodyScrollLock(isOpen);
 
   const [visible, setVisible] = useState(isOpen);
@@ -83,6 +84,7 @@ const EvaluationOverlay: React.FC<EvaluationOverlayProps> = ({ isOpen, onClose, 
             selectedDate={selectedDate}
             setIsEditing={setIsContentEditing}
             parentIsEditing={isContentEditing} // Pass parent's editing state
+            selectedProjectId={selectedProjectId} // Pass selectedProjectId
           />
         </div>
 

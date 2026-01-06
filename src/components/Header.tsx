@@ -16,9 +16,11 @@ interface HeaderProps {
   allTasks: Task[];
   allDailyEvaluations: DailyEvaluation[];
   onToggleSidebar: () => void; // New prop for toggling the sidebar
+  selectedProjectName: string | null; // Add selectedProjectName prop
+  selectedProjectId: string | null; // Add selectedProjectId prop
 }
 
-const Header = ({ onOpenModal, onDateSelect, currentCalendarViewDate, onCalendarViewChange, onSelectToday, selectedDate, todayScrollTrigger, allGoals, allTasks, allDailyEvaluations, onToggleSidebar }: HeaderProps) => {
+const Header = ({ onOpenModal, onDateSelect, currentCalendarViewDate, onCalendarViewChange, onSelectToday, selectedDate, todayScrollTrigger, allGoals, allTasks, allDailyEvaluations, onToggleSidebar, selectedProjectName, selectedProjectId }: HeaderProps) => {
   const [isSettingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
@@ -61,6 +63,9 @@ const Header = ({ onOpenModal, onDateSelect, currentCalendarViewDate, onCalendar
           </button>
           <div className="flex flex-col">
             <h1 className="text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400">PLANNING JOURNEY</h1>
+            {selectedProjectName && (
+              <h2 className="text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400">{selectedProjectName}</h2>
+            )}
             <div className="flex items-center">
               <div className="text-lg font-bold text-gray-900 dark:text-white">
                 {formattedMonthYear}
@@ -136,6 +141,7 @@ const Header = ({ onOpenModal, onDateSelect, currentCalendarViewDate, onCalendar
         allGoals={allGoals}
         allTasks={allTasks}
         allDailyEvaluations={allDailyEvaluations}
+        selectedProjectId={selectedProjectId}
       />
     </header>
   );

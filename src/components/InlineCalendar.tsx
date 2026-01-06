@@ -11,6 +11,7 @@ interface InlineCalendarProps {
   allGoals: Goal[];
   allTasks: Task[];
   allDailyEvaluations: DailyEvaluation[];
+  selectedProjectId: string | null; // Add selectedProjectId prop
 }
 
 const DAY_WIDTH = 64; // Corresponds to Tailwind 'w-14' (56px) + 'mx-1' (2 * 4px) = 64px
@@ -37,7 +38,7 @@ const formatDateToYYYYMMDD = (date: Date): string => {
 };
 
 
-const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewChange, selectedDateProp, currentViewDateProp, todayScrollTrigger, allGoals, allTasks, allDailyEvaluations }) => {
+const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewChange, selectedDateProp, currentViewDateProp, todayScrollTrigger, allGoals, allTasks, allDailyEvaluations, selectedProjectId }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -204,16 +205,21 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
           {renderedDates.map((date) => {
             const formattedDate = formatDateToYYYYMMDD(date);
 
+            // Filter data by selectedProjectId
+            const projectTasks = selectedProjectId ? allTasks.filter(task => task.projectId === selectedProjectId) : [];
+            const projectGoals = selectedProjectId ? allGoals.filter(goal => goal.projectId === selectedProjectId) : [];
+            const projectDailyEvaluations = selectedProjectId ? allDailyEvaluations.filter(evaluation => evaluation.projectId === selectedProjectId) : [];
+
             // Check for tasks
-            const hasTasks = allTasks.some(task => task.date === formattedDate);
+            const hasTasks = projectTasks.some(task => task.date === formattedDate);
 
             // Check for evaluations
-            const hasEvaluation = allDailyEvaluations.some(
+            const hasEvaluation = projectDailyEvaluations.some(
               evaluation => evaluation.date === formattedDate && evaluation.evaluationText && evaluation.evaluationText.trim().length > 0
             );
 
             // Check for goals ending on this date
-            const hasEndingGoals = allGoals.some(goal => {
+            const hasEndingGoals = projectGoals.some(goal => {
               // Normalize goal.endDate to compare only date part
               const normalizedGoalEndDate = new Date(goal.endDate.getFullYear(), goal.endDate.getMonth(), goal.endDate.getDate());
               return isSameDay(normalizedGoalEndDate, date);

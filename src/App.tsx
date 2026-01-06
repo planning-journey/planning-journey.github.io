@@ -57,10 +57,13 @@ function App() {
   const tasks = useLiveQuery(() => db.tasks.toArray());
   const dailyEvaluations = useLiveQuery(() => db.dailyEvaluations.toArray());
   const hasEvaluation = useLiveQuery(async () => {
+    if (!selectedProjectId) return false;
     const formatted = formatDateToYYYYMMDD(selectedDate);
-    const evaluation = await db.dailyEvaluations.get(formatted);
+    const evaluation = await db.dailyEvaluations
+      .where({ date: formatted, projectId: selectedProjectId })
+      .first();
     return !!evaluation && !!evaluation.evaluationText && evaluation.evaluationText.trim().length > 0;
-  }, [selectedDate]);
+  }, [selectedDate, selectedProjectId]);
 
   const [isGoalManagementModalOpen, setGoalManagementModalOpen] = useState(false);
   const [isGoalEditorModalOpen, setGoalEditorModalOpen] = useState(false);
@@ -263,6 +266,9 @@ function App() {
     setShowSidebar(prev => !prev);
   }, []);
 
+  const selectedProject = projects.find(p => p.id === selectedProjectId);
+  const selectedProjectName = selectedProject ? selectedProject.name : null;
+
   return (
     <ThemeProvider>
       <div className="font-sans text-gray-900 dark:text-white min-h-screen bg-gray-100 dark:bg-slate-900 flex">
@@ -294,6 +300,8 @@ function App() {
               allTasks={tasks || []}
               allDailyEvaluations={dailyEvaluations || []}
               onToggleSidebar={toggleSidebar} // Pass toggle function to Header
+              selectedProjectName={selectedProjectName}
+              selectedProjectId={selectedProjectId}
             />
             <OngoingGoalsHeader
               goals={goals}
@@ -304,12 +312,20 @@ function App() {
           </div>
 
           <main className="flex-1 overflow-y-auto flex flex-col items-stretch">
-            <DailyDetailArea
-              formattedSelectedDate={formattedSelectedDate}
-              scrollToTaskId={latestAddedTaskId}
-              onClearScrollToTask={handleClearScrollToTask}
-              selectedProjectId={selectedProjectId} // Pass selected project ID
-            />
+            {selectedProjectId ? (
+              <>
+                <DailyDetailArea
+                  formattedSelectedDate={formattedSelectedDate}
+                  scrollToTaskId={latestAddedTaskId}
+                  onClearScrollToTask={handleClearScrollToTask}
+                  selectedProjectId={selectedProjectId} // Pass selected project ID
+                />
+              </>
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-slate-400 text-lg">
+                프로젝트를 선택해주세요.
+              </div>
+            )}
           </main>
 
           <div ref={dailyDetailFormWrapperRef} className="sticky bottom-0 z-10 bg-white dark:bg-slate-900 shadow-lg">
@@ -359,6 +375,7 @@ function App() {
           onClose={closeEvaluationOverlay}
           selectedDate={selectedDate}
           hasEvaluation={hasEvaluation || false}
+          selectedProjectId={selectedProjectId}
         />
         {/* Project Modals */}
         <AddProjectModal

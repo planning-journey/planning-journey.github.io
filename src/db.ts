@@ -26,6 +26,7 @@ export interface DailyEvaluation {
   date: string; // YYYY-MM-DD format, primary key
   evaluationText: string;
   createdAt: Date;
+  projectId: string | null; // Add projectId
 }
 
 export class MySubClassedDexie extends Dexie {
@@ -64,6 +65,11 @@ export class MySubClassedDexie extends Dexie {
       goals: '++id, name, startDate, endDate, createdAt, projectId', // Add projectId to goals store and index it
       tasks: '++id, goalId, date, description, createdAt, projectId',
       dailyEvaluations: '&date, createdAt'
+    });
+    this.version(9).stores({
+      goals: '++id, name, startDate, endDate, createdAt, projectId',
+      tasks: '++id, goalId, date, description, createdAt, projectId',
+      dailyEvaluations: '&date, createdAt, projectId' // Add projectId to dailyEvaluations store and index it
     });
   }
 }

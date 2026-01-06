@@ -11,10 +11,11 @@ interface EvaluationContentProps {
   selectedDate: Date;
   setIsEditing: (isEditing: boolean) => void;
   parentIsEditing: boolean; // New prop to receive editing state from parent
+  selectedProjectId: string | null; // Add selectedProjectId prop
 }
 
 const EvaluationContent = React.forwardRef<EvaluationContentRef, EvaluationContentProps>(
-  ({ selectedDate, setIsEditing, parentIsEditing }, ref) => {
+  ({ selectedDate, setIsEditing, parentIsEditing, selectedProjectId }, ref) => {
     const [content, setContent] = useState('');
     const [editedContent, setEditedContent] = useState('');
     const editedContentRef = useRef(''); // Ref to hold the latest editedContent
@@ -30,7 +31,15 @@ const EvaluationContent = React.forwardRef<EvaluationContentRef, EvaluationConte
 
     useEffect(() => {
       const fetchEvaluation = async () => {
-        const dailyEvaluation = await db.dailyEvaluations.get(formattedDate);
+        if (!selectedProjectId) {
+          setContent('');
+          setEditedContent('');
+          return;
+        }
+        const dailyEvaluation = await db.dailyEvaluations
+          .where({ date: formattedDate, projectId: selectedProjectId })
+          .first();
+
         if (dailyEvaluation) {
           setContent(dailyEvaluation.evaluationText);
           setEditedContent(dailyEvaluation.evaluationText);
@@ -40,7 +49,7 @@ const EvaluationContent = React.forwardRef<EvaluationContentRef, EvaluationConte
         }
       };
       fetchEvaluation();
-    }, [formattedDate]);
+    }, [formattedDate, selectedProjectId]); // Add selectedProjectId as dependency
 
     // Keep the ref updated with the latest editedContent
     useEffect(() => {
@@ -48,11 +57,18 @@ const EvaluationContent = React.forwardRef<EvaluationContentRef, EvaluationConte
     }, [editedContent]);
 
     const saveContent = useCallback(async () => {
-      await db.dailyEvaluations.put({ date: formattedDate, evaluationText: editedContentRef.current, createdAt: new Date() });
+      if (!selectedProjectId) return; // Cannot save without a selected project
+
+      await db.dailyEvaluations.put({
+        date: formattedDate,
+        evaluationText: editedContentRef.current,
+        createdAt: new Date(),
+        projectId: selectedProjectId,
+      });
       setContent(editedContentRef.current);
       setIsLocalEditing(false); // Exit local editing mode after saving
       setIsEditing(false); // Inform parent to exit editing mode
-    }, [formattedDate, setContent, setIsLocalEditing, setIsEditing]);
+    }, [formattedDate, selectedProjectId, setContent, setIsLocalEditing, setIsEditing]);
 
     useImperativeHandle(ref, () => ({
       save: saveContent,
