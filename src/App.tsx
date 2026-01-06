@@ -185,7 +185,7 @@ function App() {
   const handleDateSelect = useCallback((date: Date) => {
     setSelectedDate(date);
     setCurrentCalendarViewDate(date);
-  }, handleSelectProject);
+  }, [handleSelectProject]);
 
   const handleCalendarViewChange = useCallback((date: Date) => {
     if (!isSameMonthYear(date, currentCalendarViewDate)) {
@@ -271,7 +271,7 @@ function App() {
 
   return (
     <ThemeProvider>
-      <div className="font-sans text-gray-900 dark:text-white min-h-screen bg-gray-100 dark:bg-slate-900 flex">
+      <div className="text-gray-900 dark:text-white min-h-screen bg-gray-100 dark:bg-slate-900 flex">
         <Sidebar
           isOpen={showSidebar}
           onClose={() => setShowSidebar(false)}
@@ -286,53 +286,51 @@ function App() {
           selectedProjectId={selectedProjectId}
         />
 
-        <div className="flex-1 flex flex-col md:pl-64"> {/* Main content area */}
-          <div ref={stickyHeaderRef} className="sticky top-0 z-10">
-            <Header
-              onOpenModal={openGoalManagementModal}
-              onDateSelect={handleDateSelect}
-              currentCalendarViewDate={currentCalendarViewDate}
-              onCalendarViewChange={handleCalendarViewChange}
-              onSelectToday={handleSelectToday}
-              selectedDate={selectedDate}
-              todayScrollTrigger={todayScrollTrigger}
-              allGoals={goals || []}
-              allTasks={tasks || []}
-              allDailyEvaluations={dailyEvaluations || []}
-              onToggleSidebar={toggleSidebar} // Pass toggle function to Header
-              selectedProjectName={selectedProjectName}
-              selectedProjectId={selectedProjectId}
-            />
-            <OngoingGoalsHeader
-              goals={goals}
-              selectedDate={selectedDate}
-              onGoalSelect={openGoalDetailModal}
-              selectedProjectId={selectedProjectId}
-            />
-          </div>
+        {selectedProjectId ? (
+          <div className="flex-1 flex flex-col md:pl-64"> {/* Main content area */}
+            <div ref={stickyHeaderRef} className="sticky top-0 z-10">
+              <Header
+                onOpenModal={openGoalManagementModal}
+                onDateSelect={handleDateSelect}
+                currentCalendarViewDate={currentCalendarViewDate}
+                onCalendarViewChange={handleCalendarViewChange}
+                onSelectToday={handleSelectToday}
+                selectedDate={selectedDate}
+                todayScrollTrigger={todayScrollTrigger}
+                allGoals={goals || []}
+                allTasks={tasks || []}
+                allDailyEvaluations={dailyEvaluations || []}
+                onToggleSidebar={toggleSidebar} // Pass toggle function to Header
+                selectedProjectName={selectedProjectName}
+                selectedProjectId={selectedProjectId}
+              />
+              <OngoingGoalsHeader
+                goals={goals}
+                selectedDate={selectedDate}
+                onGoalSelect={openGoalDetailModal}
+                selectedProjectId={selectedProjectId}
+              />
+            </div>
 
-          <main className="flex-1 overflow-y-auto flex flex-col items-stretch">
-            {selectedProjectId ? (
-              <>
-                <DailyDetailArea
-                  formattedSelectedDate={formattedSelectedDate}
-                  scrollToTaskId={latestAddedTaskId}
-                  onClearScrollToTask={handleClearScrollToTask}
-                  selectedProjectId={selectedProjectId} // Pass selected project ID
-                />
-              </>
-            ) : (
-              <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-slate-400 text-lg">
-                프로젝트를 선택해주세요.
-              </div>
-            )}
-          </main>
+            <main className="flex-1 overflow-y-auto flex flex-col items-stretch">
+              <DailyDetailArea
+                formattedSelectedDate={formattedSelectedDate}
+                scrollToTaskId={latestAddedTaskId}
+                onClearScrollToTask={handleClearScrollToTask}
+                selectedProjectId={selectedProjectId} // Pass selected project ID
+              />
+            </main>
 
-          <div ref={dailyDetailFormWrapperRef} className="sticky bottom-0 z-10 bg-white dark:bg-slate-900 shadow-lg">
-            <DailyDetailForm onAddTask={handleAddTask} selectedDate={selectedDate} ref={dailyDetailFormInputRef} />
-            <EvaluationHeader stickyHeaderHeight={stickyHeaderHeight} dailyDetailFormHeight={dailyDetailFormHeight} hasEvaluation={hasEvaluation || false} onOpenEvaluationOverlay={openEvaluationOverlay} />
+            <div ref={dailyDetailFormWrapperRef} className="sticky bottom-0 z-10 bg-white dark:bg-slate-900 shadow-lg">
+              <DailyDetailForm onAddTask={handleAddTask} selectedDate={selectedDate} ref={dailyDetailFormInputRef} />
+              <EvaluationHeader stickyHeaderHeight={stickyHeaderHeight} dailyDetailFormHeight={dailyDetailFormHeight} hasEvaluation={hasEvaluation || false} onOpenEvaluationOverlay={openEvaluationOverlay} />
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-slate-400 text-lg md:pl-64">
+            프로젝트를 생성하거나 선택하세요.
+          </div>
+        )}
 
         <GoalManagementModal
           isOpen={isGoalManagementModalOpen}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, Plus, Edit, Trash2 } from 'lucide-react'; // Import Edit and Trash2 icons
-import { Project } from '../types/project'; // Import Project interface
+import { type Project } from '../types/project'; // Import Project interface
 
 interface SidebarProps {
   isOpen: boolean;
