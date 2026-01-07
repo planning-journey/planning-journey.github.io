@@ -19,6 +19,7 @@ import { db, type Goal, type Task } from './db';
 import {formatDateToYYYYMMDD} from './utils/dateUtils.ts';
 import type { Project } from './types/project'; // Import Project interface
 import { v4 as uuidv4 } from 'uuid'; // Import uuid for unique IDs
+import { DragDropProvider } from './contexts/DragDropContext';
 
 // Helper function to check if two dates are in the same month and year
 const isSameMonthYear = (d1: Date, d2: Date) => {
@@ -65,8 +66,6 @@ function App() {
 
   // Project Management States
 
-
-
   const goals = useLiveQuery(() => db.goals.toArray());
   const tasks = useLiveQuery(() => db.tasks.toArray());
   const dailyEvaluations = useLiveQuery(() => db.dailyEvaluations.toArray());
@@ -89,8 +88,6 @@ function App() {
   const [projectToDeleteId, setProjectToDeleteId] = useState<string | null>(null); // New state for project deletion
   const [goalForDetail, setGoalForDetail] = useState<Goal | null>(null);
   const [isEvaluationOverlayOpen, setIsEvaluationOverlayOpen] = useState(false);
-
-
 
   // States lifted from DailyDetailArea
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
@@ -132,8 +129,6 @@ function App() {
     await db.projects.update(id, { name: newName });
     showToast(`프로젝트가 '${newName}'으로 수정되었습니다.`);
   }, [showToast]);
-
-
 
   const handleSelectProject = useCallback((id: string) => {
     setSelectedProjectId(id);
@@ -303,9 +298,73 @@ function App() {
   const selectedProject = projects.find(p => p.id === selectedProjectId);
   const selectedProjectName = selectedProject ? selectedProject.name : null;
 
+  // Task Move Handler
+  const handleTaskMove = useCallback(async (taskId: string, targetDate: string | null, targetTaskId?: string | null, position?: 'before' | 'after') => {
+    if (!selectedProjectId) return;
+
+    if (targetDate) {
+      // 1. Move to another date
+      const targetTasks = await db.tasks
+        .where({ date: targetDate, projectId: selectedProjectId })
+        .toArray();
+      
+      const maxOrder = targetTasks.length > 0
+        ? Math.max(...targetTasks.map(t => t.order))
+        : -1;
+
+      await db.tasks.update(taskId, {
+        date: targetDate,
+        order: maxOrder + 1
+      });
+      showToast('할 일이 이동되었습니다.');
+      
+    } else if (targetTaskId) {
+      // 2. Reorder within the same date
+      // Fetch all tasks for the current date
+      const currentTasks = await db.tasks
+        .where({ date: formattedSelectedDate, projectId: selectedProjectId })
+        .sortBy('order');
+      
+      const draggedTaskIndex = currentTasks.findIndex(t => t.id === taskId);
+      if (draggedTaskIndex === -1) return;
+
+      const draggedTask = currentTasks[draggedTaskIndex];
+      // Remove dragged task from array
+      const newTasks = [...currentTasks];
+      newTasks.splice(draggedTaskIndex, 1);
+
+      // Find target index
+      let targetIndex = newTasks.findIndex(t => t.id === targetTaskId);
+      if (targetIndex === -1) {
+          // If target not found (shouldn't happen), push to end
+          targetIndex = newTasks.length;
+      } else {
+        // Adjust index based on 'after'
+        if (position === 'after') {
+          targetIndex += 1;
+        }
+      }
+
+      // Insert at new position
+      newTasks.splice(targetIndex, 0, draggedTask);
+
+      // Batch update orders
+      const updates = newTasks.map((task, index) => {
+        return db.tasks.update(task.id, { order: index });
+      });
+      
+      await Promise.all(updates);
+    }
+  }, [selectedProjectId, formattedSelectedDate, showToast]);
+
   return (
     <ThemeProvider>
-      <div className="text-gray-900 dark:text-white min-h-screen bg-gray-100 dark:bg-slate-900 flex">
+      <DragDropProvider
+        onDateSwitch={handleDateSelect}
+        currentDate={selectedDate}
+        onTaskMove={handleTaskMove}
+      >
+        <div className="text-gray-900 dark:text-white min-h-screen bg-gray-100 dark:bg-slate-900 flex">
         <Sidebar
           isOpen={showSidebar}
           onClose={() => setShowSidebar(false)}
@@ -429,7 +488,8 @@ function App() {
             projectName={projectToEdit.name}
           />
         )}
-      </div>
+        </div>
+      </DragDropProvider>
     </ThemeProvider>
   );
 }

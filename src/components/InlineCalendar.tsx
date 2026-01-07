@@ -235,6 +235,7 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
             return (
               <div
                 key={date.toISOString()}
+                data-calendar-date={formattedDate}
                 className={`flex-none w-14 text-center select-none cursor-pointer relative py-2 rounded-xl
                   ${isSameDay(date, new Date()) ? 'font-bold text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300'}
                   ${isSameDay(date, selectedDateProp) ? 'bg-indigo-100 dark:bg-indigo-900' : ''}
