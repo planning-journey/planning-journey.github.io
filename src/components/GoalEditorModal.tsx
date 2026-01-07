@@ -120,9 +120,10 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: Goa
         setName('');
         setColor(presetColors[0]);
         setPeriodType('daily');
-        setSelectedCalendarDate(new Date());
-        setYear(new Date().getFullYear());
-        setMonth(new Date().getMonth() + 1);
+        const now = new Date();
+        setSelectedCalendarDate(now);
+        setYear(now.getFullYear());
+        setMonth(now.getMonth() + 1);
         setStartDate(null);
         setEndDate(null);
       }
@@ -169,14 +170,14 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: Goa
 
   // Reset selectedCalendarDate when periodType changes to avoid weird state issues
   useEffect(() => {
-    if (!goalToEdit) {
+    if (!goalToEdit && isOpen) {
       setSelectedCalendarDate(new Date());
       if (periodType === 'free') {
           setStartDate(null);
           setEndDate(null);
       }
     }
-  }, [periodType, goalToEdit]);
+  }, [periodType, goalToEdit, isOpen]);
 
 
   if (!isOpen) return null;

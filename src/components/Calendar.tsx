@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react'; // For navigation icons
 
 interface CalendarProps {
@@ -54,8 +54,16 @@ const Calendar = ({
   onSelectRange,
   showBorder = true, // Default to true
 }: CalendarProps) => {
-  const [currentMonth, setCurrentMonth] = useState(startDate || new Date()); // Represents the month being viewed
+  const [currentMonth, setCurrentMonth] = useState(startDate || selectedDate || new Date()); // Represents the month being viewed
   const today = new Date();
+
+  // Update current month if selectedDate or startDate changes from outside (e.g. when editing a goal)
+  useEffect(() => {
+    const targetDate = startDate || selectedDate;
+    if (targetDate) {
+      setCurrentMonth(new Date(targetDate.getFullYear(), targetDate.getMonth(), 1));
+    }
+  }, [selectedDate, startDate]);
 
   // Handle month/year navigation
   const goToPreviousMonth = () => {
