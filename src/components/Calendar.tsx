@@ -126,7 +126,7 @@ const Calendar = ({
       </div>
 
       {/* Days Grid */}
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-y-1">
         {days.map((dayNum, index) => {
           const date = dayNum ? new Date(year, month, dayNum) : null;
           const isCurrentMonth = date && date.getMonth() === month;
@@ -161,34 +161,9 @@ const Calendar = ({
             }
           }
 
-          const dayClasses: string[] = [];
-
-          dayClasses.push('relative flex items-center justify-center h-8 w-8 text-sm transition-all duration-200');
-
-          if (isCurrentMonth) {
-            dayClasses.push('text-gray-900 dark:text-white');
-          } else {
-            dayClasses.push('text-gray-400 dark:text-slate-600');
-          }
-
-          if (isRangeStart) {
-            dayClasses.push('bg-indigo-600 dark:bg-indigo-500 text-white rounded-l-full');
-          } else if (isRangeEnd) {
-            dayClasses.push('bg-indigo-600 dark:bg-indigo-500 text-white rounded-r-full');
-          } else if (isInRange) {
-            dayClasses.push('bg-indigo-200 dark:bg-indigo-700 text-indigo-800 dark:text-indigo-100 rounded-none');
-          } else if (isSelected) {
-            dayClasses.push('bg-indigo-600 dark:bg-indigo-500 text-white rounded-full');
-          } else {
-            // Default hover state if not selected/ranged
-            dayClasses.push('hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full');
-          }
-
-          if (isToday && !isSelected && !isInRange && !isRangeStart && !isRangeEnd) {
-            dayClasses.push('border border-indigo-500 rounded-full');
-          }
-
-          const finalDayClasses = dayClasses.join(' ');
+          // Background Strip Logic
+          const showStrip = isInRange || isRangeStart || isRangeEnd;
+          const isSingleDayRange = isRangeStart && isRangeEnd; // Range of 1 day
 
           return (
             <button
@@ -196,9 +171,48 @@ const Calendar = ({
               key={index}
               onClick={() => handleDayClick(dayNum)}
               disabled={!dayNum}
-              className={finalDayClasses}
+              className="relative w-full h-10 flex items-center justify-center focus:outline-none"
             >
-              {dayNum}
+              {/* Continuous Background Strip for Ranges */}
+              {dayNum && showStrip && !isSingleDayRange && (
+                <div
+                  className={`absolute inset-y-1 bg-indigo-100 dark:bg-indigo-900/40
+                    ${isRangeStart ? 'left-1/2 right-0 rounded-l-md' : ''}
+                    ${isRangeEnd ? 'left-0 right-1/2 rounded-r-md' : ''}
+                    ${isInRange ? 'inset-x-0' : ''}
+                  `}
+                />
+              )}
+
+              {/* Number Circle */}
+              {dayNum && (
+                <span
+                  className={`relative z-10 w-8 h-8 flex items-center justify-center rounded-full text-sm transition-all duration-200
+                    ${
+                      isSelected || isRangeStart || isRangeEnd
+                        ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm font-semibold'
+                        : ''
+                    }
+                    ${
+                      !isSelected && !isRangeStart && !isRangeEnd && isToday
+                        ? 'text-indigo-600 dark:text-indigo-400 font-bold ring-1 ring-inset ring-indigo-500'
+                        : ''
+                    }
+                    ${
+                       !isSelected && !isRangeStart && !isRangeEnd && !isToday && isCurrentMonth
+                        ? 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700'
+                        : ''
+                    }
+                     ${
+                       !isSelected && !isRangeStart && !isRangeEnd && !isToday && !isCurrentMonth
+                        ? 'text-gray-300 dark:text-slate-600'
+                        : ''
+                    }
+                  `}
+                >
+                  {dayNum}
+                </span>
+              )}
             </button>
           );
         })}
