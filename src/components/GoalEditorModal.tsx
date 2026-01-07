@@ -32,10 +32,10 @@ const presetColors = [
 
 // Period Type Options for goal setting
 const periodTypeOptions = [
-  { label: '매일', value: 'daily' },
-  { label: '매주', value: 'weekly' },
-  { label: '매월', value: 'monthly' },
-  { label: '매년', value: 'yearly' },
+  { label: '일일', value: 'daily' },
+  { label: '주간', value: 'weekly' },
+  { label: '월간', value: 'monthly' },
+  { label: '연간', value: 'yearly' },
   { label: '자유', value: 'free' },
 ];
 
@@ -280,10 +280,10 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: Goa
                     type="button"
                     onClick={() => setPeriodType(option.value as PeriodTypeOption)}
                     className={`
-                      px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-300
+                      flex-1 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 border min-w-[3.5rem]
                       ${periodType === option.value
-                        ? 'bg-indigo-600 text-white shadow-md'
-                        : 'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-600 border border-gray-300 dark:border-slate-600'
+                        ? 'bg-indigo-600 dark:bg-indigo-500 text-white border-indigo-600 dark:border-indigo-500 shadow-lg shadow-indigo-200 dark:shadow-none transform scale-[1.02]'
+                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-300'
                       }
                     `}
                   >
