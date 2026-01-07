@@ -160,18 +160,13 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: Goa
   // Reset selectedCalendarDate when periodType changes to avoid weird state issues
   useEffect(() => {
     if (!goalToEdit) {
-      const today = new Date();
-      // Only update if the current selectedCalendarDate is different from today
-      // or if it's null (meaning it needs initialization)
-      if (!selectedCalendarDate || selectedCalendarDate.toDateString() !== today.toDateString()) {
-        setSelectedCalendarDate(today);
-      }
+      setSelectedCalendarDate(new Date());
       if (periodType === 'free') {
           setStartDate(null);
           setEndDate(null);
       }
     }
-  }, [periodType, goalToEdit, selectedCalendarDate]); // Added selectedCalendarDate to deps
+  }, [periodType, goalToEdit]);
 
 
   if (!isOpen) return null;
