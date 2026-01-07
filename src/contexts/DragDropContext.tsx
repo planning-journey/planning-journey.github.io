@@ -27,7 +27,8 @@ interface DropIndicatorState {
   x: number;
   y: number;
   width: number;
-  type: 'task-gap' | 'date-highlight';
+  height?: number; // Added height
+  type: 'task-gap' | 'date-highlight' | 'container-highlight';
 }
 
 export const DragDropProvider: React.FC<DragDropProviderProps> = ({
@@ -36,6 +37,7 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
   currentDate,
   onTaskMove
 }) => {
+// ... (skip lines to keep context short if possible, but I need to replace precisely)
   const [isDragging, setIsDragging] = useState(false);
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -114,7 +116,6 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
     }
 
     // 우선순위: 날짜 셀 > 태스크 아이템 > 빈 컨테이너
-    // 날짜 셀 위에 있으면 날짜 이동 로직 우선
     if (foundDateTarget) {
       const dateStr = foundDateTarget.getAttribute('data-calendar-date');
       
@@ -132,8 +133,9 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
       setDropIndicator({
         x: rect.left,
         y: rect.top,
-        width: rect.width, // Not used for date highlight logic directly but kept for structure
-        type: 'date-highlight' // Special type for date highlight
+        width: 56, // Fixed width w-14
+        height: 96, // 6rem
+        type: 'date-highlight'
       });
       setActiveDropTargetInfo({
         targetId: dateStr,
@@ -158,7 +160,8 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
             x: rect.left,
             y: rect.top,
             width: rect.width,
-            type: 'date-highlight'
+            height: rect.height,
+            type: 'container-highlight'
         });
         setActiveDropTargetInfo({
             targetId: 'empty-container',
@@ -247,7 +250,7 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
     setDraggedTask(null);
     setDropIndicator(null);
     setActiveDropTargetInfo(null);
-  }, [isDragging, draggedTask, activeDropTargetInfo, onTaskMove]);
+  }, [isDragging, draggedTask, activeDropTargetInfo, onTaskMove, currentDate]);
 
   useEffect(() => {
     if (isDragging) {
@@ -298,13 +301,13 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
             document.body
           )}
 
-          {/* Drop Indicator (Highlight for Date Cells) */}
-          {dropIndicator && dropIndicator.type === 'date-highlight' && createPortal(
+          {/* Drop Indicator (Highlight for Date Cells & Containers) */}
+          {dropIndicator && (dropIndicator.type === 'date-highlight' || dropIndicator.type === 'container-highlight') && createPortal(
              <div
               className="fixed z-[55] pointer-events-none border-2 border-indigo-500 rounded-xl bg-indigo-500/20 transition-all duration-75 ease-out"
               style={{
-                width: '56px', // Fixed width for date cell (w-14)
-                height: '64px', // Approx height
+                width: dropIndicator.width,
+                height: dropIndicator.height || '64px',
                 left: dropIndicator.x,
                 top: dropIndicator.y,
               }}
