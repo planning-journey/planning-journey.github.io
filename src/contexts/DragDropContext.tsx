@@ -97,6 +97,7 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
     // 타겟 초기화
     let foundTaskTarget: HTMLElement | undefined;
     let foundDateTarget: HTMLElement | undefined;
+    let foundContainerTarget: HTMLElement | undefined;
 
     for (const el of elements) {
       if (el instanceof HTMLElement) {
@@ -106,10 +107,13 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
         if (!foundDateTarget && el.hasAttribute('data-calendar-date')) {
           foundDateTarget = el;
         }
+        if (!foundContainerTarget && el.hasAttribute('data-drop-container')) {
+          foundContainerTarget = el;
+        }
       }
     }
 
-    // 우선순위: 날짜 셀 > 태스크 아이템
+    // 우선순위: 날짜 셀 > 태스크 아이템 > 빈 컨테이너
     // 날짜 셀 위에 있으면 날짜 이동 로직 우선
     if (foundDateTarget) {
       const dateStr = foundDateTarget.getAttribute('data-calendar-date');
@@ -145,6 +149,23 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
         dateSwitchTimer.current = null;
       }
       lastHoveredDateStr.current = null;
+    }
+
+    // 빈 컨테이너 감지 (태스크가 없을 때)
+    if (foundContainerTarget) {
+        const rect = foundContainerTarget.getBoundingClientRect();
+        setDropIndicator({
+            x: rect.left,
+            y: rect.top,
+            width: rect.width,
+            type: 'date-highlight'
+        });
+        setActiveDropTargetInfo({
+            targetId: 'empty-container',
+            targetType: 'date',
+            position: 'inside'
+        });
+        return;
     }
 
     // 태스크 타겟 처리
@@ -204,9 +225,17 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
     } else if (activeDropTargetInfo) {
       const { targetId, targetType, position } = activeDropTargetInfo;
       
-      if (targetType === 'date' && targetId) {
-        // This case might be redundant due to the check above, but kept for safety
-        onTaskMove(draggedTask.id, targetId, null, 'after');
+      if (targetType === 'date') {
+        if (targetId === 'empty-container') {
+             // Move to the current date shown in the view
+             const y = currentDate.getFullYear();
+             const m = String(currentDate.getMonth() + 1).padStart(2, '0');
+             const d = String(currentDate.getDate()).padStart(2, '0');
+             onTaskMove(draggedTask.id, `${y}-${m}-${d}`, null, 'after');
+        } else if (targetId) {
+             // Move to a specific date cell
+             onTaskMove(draggedTask.id, targetId, null, 'after');
+        }
       } else if (targetType === 'task' && targetId) {
         // 순서 변경
         onTaskMove(draggedTask.id, null, targetId, position as 'before' | 'after');
