@@ -69,6 +69,11 @@ export class AppDB extends Dexie {
         }
       });
     });
+
+    this.version(3).stores({
+      tasks: 'id, projectId, goalId, title, completed, date, order, [date+projectId]',
+      dailyEvaluations: 'id, projectId, date, [date+projectId]',
+    });
   }
 }
 

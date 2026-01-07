@@ -51,7 +51,7 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
   } | null>(null);
 
   const dragOffset = useRef({ x: 0, y: 0 });
-  const dateSwitchTimer = useRef<NodeJS.Timeout | null>(null);
+  const dateSwitchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastHoveredDateStr = useRef<string | null>(null);
 
   useEffect(() => {
