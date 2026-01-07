@@ -89,6 +89,11 @@ jobs:
 2. **Build and deployment > Source** 항목에서 `Deploy from a branch`가 아닌 **`GitHub Actions`**를 선택합니다.
 3. 코드를 `master` 브랜치에 푸시하면 **Actions** 탭에서 배포 진행 상황을 확인할 수 있습니다.
 
-## 4. SPA 라우팅 주의사항 (참고)
+## 4. SPA 라우팅 대응
 
-GitHub Pages는 기본적으로 Single Page Application(SPA)의 클라이언트 라우팅을 지원하지 않습니다. 만약 추후에 페이지 이동 기능(React Router 등)을 추가할 경우, 직접 URL을 입력해 접속하면 404 오류가 발생합니다. 이 경우 `public/404.html` 파일을 생성하여 `index.html`로 리다이렉트시키는 트릭이 필요합니다.
+GitHub Pages는 기본적으로 Single Page Application(SPA)의 클라이언트 라우팅을 지원하지 않습니다. 이를 해결하기 위해 본 프로젝트에는 다음과 같은 처리가 이미 적용되어 있습니다:
+
+1.  `public/404.html`: 잘못된 경로로 접근 시 쿼리 스트링을 이용해 `index.html`로 리다이렉트합니다.
+2.  `index.html`: 리다이렉트된 쿼리 스트링을 읽어 원래의 경로로 브라우저 히스토리를 복구합니다.
+
+따라서 추후에 `react-router-dom` 등을 추가하더라도 별도의 설정 없이 새로고침 및 직접 링크 접근이 가능합니다.
