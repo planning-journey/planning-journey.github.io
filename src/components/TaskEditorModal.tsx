@@ -25,6 +25,7 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
   const [isDateSelectorModalOpen, setIsDateSelectorModalOpen] = useState(false);
   const allGoals = useLiveQuery(() => db.goals.toArray(), []);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const [visible, setVisible] = useState(isOpen);
   const [animated, setAnimated] = useState(isOpen);
@@ -44,6 +45,12 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
       return () => clearTimeout(timeoutId);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (animated && titleInputRef.current) {
+      titleInputRef.current.focus();
+    }
+  }, [animated]);
 
   useEffect(() => {
     if (isOpen) {
@@ -169,6 +176,7 @@ const TaskEditorModal: React.FC<TaskEditorModalProps> = ({ isOpen, onClose, task
                   할 일
                 </label>
                 <input
+                  ref={titleInputRef}
                   type="text"
                   id="taskTitle"
                   value={title}

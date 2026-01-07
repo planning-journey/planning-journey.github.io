@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import useBodyScrollLock from '../utils/useBodyScrollLock';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -79,6 +79,7 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: Goa
   const [name, setName] = useState('');
   const [color, setColor] = useState(presetColors[0]); // Default to first preset color
   const [periodType, setPeriodType] = useState<PeriodTypeOption>('daily');
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   // State for date inputs
   const [year, setYear] = useState(new Date().getFullYear());
@@ -86,6 +87,15 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: Goa
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(new Date());
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    if (isOpen && nameInputRef.current) {
+      const timeoutId = setTimeout(() => {
+        nameInputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isOpen]);
 
 
 
@@ -240,12 +250,13 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: Goa
             <div>
               <label htmlFor="goalName" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">목표 이름</label>
               <input
+                ref={nameInputRef}
                 type="text"
                 id="goalName"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="예: 매일 30분 운동하기"
+                placeholder="예: 이번 주 목표"
                 required
               />
             </div>
