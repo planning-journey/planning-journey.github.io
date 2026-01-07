@@ -307,7 +307,7 @@ function App() {
       const targetTasks = await db.tasks
         .where({ date: targetDate, projectId: selectedProjectId })
         .toArray();
-      
+
       const maxOrder = targetTasks.length > 0
         ? Math.max(...targetTasks.map(t => t.order))
         : -1;
@@ -317,10 +317,10 @@ function App() {
         order: maxOrder + 1
       });
       showToast('할 일이 이동되었습니다.');
-      
+
     } else if (targetTaskId) {
       // Case B: Dropped on another Task -> Reorder (possibly moving dates)
-      
+
       // 1. Get the task being dragged
       const draggedTask = await db.tasks.get(taskId);
       if (!draggedTask) return;
@@ -329,7 +329,7 @@ function App() {
       const currentTasks = await db.tasks
         .where({ date: formattedSelectedDate, projectId: selectedProjectId })
         .sortBy('order');
-      
+
       // 3. Remove dragged task from the list if it's already there (same date reorder)
       //    If it's from another date, it won't be in this list, which is fine.
       const filteredTasks = currentTasks.filter(t => t.id !== taskId);
@@ -354,12 +354,12 @@ function App() {
       //    We update 'date' for all just to be safe, or specifically for the moved one.
       //    Updating all ensures consistency.
       const updates = filteredTasks.map((task, index) => {
-        return db.tasks.update(task.id, { 
+        return db.tasks.update(task.id, {
             order: index,
             date: formattedSelectedDate // Ensure date is correct (moves task if needed)
         });
       });
-      
+
       await Promise.all(updates);
     }
   }, [selectedProjectId, formattedSelectedDate, showToast]);
@@ -390,7 +390,7 @@ function App() {
         />
 
         {selectedProjectId ? (
-          <div className="flex-1 flex flex-col md:pl-64"> {/* Main content area */}
+          <div className="flex-1 flex flex-col md:pl-64 max-w-full"> {/* Main content area */}
             <div ref={stickyHeaderRef} className="sticky top-0 z-10">
               <Header
                 onOpenModal={openGoalManagementModal}

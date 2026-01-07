@@ -9,12 +9,7 @@ interface CheckboxProps {
 
 const Checkbox: React.FC<CheckboxProps> = ({ checked, onChange, className }) => {
   return (
-    <div
-      onClick={(event) => {
-        event.stopPropagation();
-        onChange(!checked);
-      }}
-      className="flex items-center justify-center px-3 cursor-pointer">
+    <div>
       <button
         type="button"
         role="checkbox"

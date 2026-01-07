@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type Goal } from '../db';
 import { Pencil, X } from 'lucide-react';
@@ -65,7 +65,7 @@ const GoalManagementModal = ({ isOpen, onClose, onAddNewGoal, onEditGoal, onDele
   const [activeTab, setActiveTab] = useState<TabType>('in_progress');
 
   const allGoals = useLiveQuery(() => db.goals.toArray(), []) as Goal[] | undefined;
-  
+
   // Filter goals by selectedProjectId and activeTab
   const filteredGoals = allGoals?.filter(goal => {
     if (goal.projectId !== selectedProjectId) return false;
@@ -137,9 +137,9 @@ const GoalManagementModal = ({ isOpen, onClose, onAddNewGoal, onEditGoal, onDele
                 className={`
                   w-full py-2.5 text-sm font-medium leading-5 rounded-lg focus:outline-none transition-all duration-300
                   ${activeTab === tab
-                    ? 'bg-white dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 shadow'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                  }
+                  ? 'bg-white dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 shadow'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                }
                 `}
               >
                 {tab === 'in_progress' ? '진행중' : tab === 'completed' ? '완료' : '전체'}
@@ -151,52 +151,60 @@ const GoalManagementModal = ({ isOpen, onClose, onAddNewGoal, onEditGoal, onDele
         <div className="p-4 overflow-y-auto flex-[1_1_0]">
           <div className="h-full overflow-y-auto pr-2 custom-scrollbar">
             {filteredGoals && filteredGoals.length > 0 ? (
-                <div className="flex flex-col">
-                    {filteredGoals.map((goal) => (
-                        <div
-                          key={goal.id}
-                          className="flex items-center py-2 px-3 border-b border-slate-200/50 dark:border-slate-700 last:border-b-0"
-                        >
-                          <div className="flex items-center flex-grow gap-2">
-                             <Checkbox
-                                checked={goal.status === 'completed'}
-                                onChange={() => handleToggleGoal(goal)}
-                                className="mr-2"
-                              />
-                            <div className="flex items-center mr-3 h-6">
-                              <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: goal.color }}></div>
-                            </div>
-                            <div className="overflow-hidden">
-                              <span className={`font-semibold break-all ${goal.status === 'completed' ? 'text-slate-400 dark:text-slate-500 line-through' : 'text-gray-900 dark:text-white'}`}>
-                                {goal.name}
-                              </span>
-                              <p className="text-sm text-gray-500 dark:text-slate-400">{formatPeriod(goal)}</p>
-                            </div>
-                          </div>
+              <div className="flex flex-col">
+                {filteredGoals.map((goal) => (
+                  <div
+                    key={goal.id}
+                    className="flex flex-col items-stretch py-2 px-3 border-b border-slate-200/50 dark:border-slate-700 last:border-b-0"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        onClick={(event: React.MouseEvent) => {
+                          event.stopPropagation();
+                          handleToggleGoal(goal);
+                        }}
+                        className="flex items-center justify-center">
+                        <Checkbox
+                          checked={goal.status === 'completed'}
+                          onChange={() => handleToggleGoal(goal)}
+                          className="mr-2"
+                        />
+                      </div>
+                      <div className="overflow-hidden flex-[1_1_0]">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: goal.color }}></div>
 
-                          <div className="flex items-center gap-2 pl-4">
-                            <button
-                              onClick={() => onEditGoal(goal)}
-                              className="p-2 rounded-md text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => goal.id && onDeleteGoal(goal.id)}
-                              className="p-2 rounded-md text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-500/50"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
+                          <span className={`font-semibold truncate break-all ${goal.status === 'completed' ? 'text-slate-400 dark:text-slate-500 line-through' : 'text-gray-900 dark:text-white'}`}>
+                            {goal.name}
+                          </span>
                         </div>
-                    ))}
-                </div>
+                        <p className="text-sm text-gray-500 dark:text-slate-400">{formatPeriod(goal)}</p>
+                      </div>
+
+                      <div className="flex items-center gap-2 pl-4">
+                        <button
+                          onClick={() => onEditGoal(goal)}
+                          className="p-2 rounded-md text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => goal.id && onDeleteGoal(goal.id)}
+                          className="p-2 rounded-md text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : (
-                <p className="text-gray-500 dark:text-slate-400 text-center py-10">
-                  {activeTab === 'in_progress' && '진행 중인 목표가 없습니다.'}
-                  {activeTab === 'completed' && '완료된 목표가 없습니다.'}
-                  {activeTab === 'all' && '아직 목표가 없습니다. 새로운 목표를 추가해보세요!'}
-                </p>
+              <p className="text-gray-500 dark:text-slate-400 text-center py-10">
+                {activeTab === 'in_progress' && '진행 중인 목표가 없습니다.'}
+                {activeTab === 'completed' && '완료된 목표가 없습니다.'}
+                {activeTab === 'all' && '아직 목표가 없습니다. 새로운 목표를 추가해보세요!'}
+              </p>
             )}
           </div>
         </div>

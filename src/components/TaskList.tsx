@@ -25,12 +25,12 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onViewTaskDetail, onToggleTa
 
   if (tasks.length === 0) {
     return (
-      <div 
+      <div
         data-drop-container="true"
-        className="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl m-4 transition-colors duration-200"
+        className="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl m-4"
       >
         <p className="text-center text-gray-500 dark:text-slate-400">오늘 할 일을 추가해보세요!</p>
-        <p className="text-xs text-slate-400 dark:text-slate-600 mt-2">이곳에 할 일을 드래그하여 옮길 수 있습니다.</p>
+        <p className="text-sm text-slate-400 dark:text-slate-600 mt-2">이곳에 할 일을 드래그하여 옮길 수 있습니다.</p>
       </div>
     );
   }
