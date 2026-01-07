@@ -185,11 +185,27 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
     }
     lastHoveredDateStr.current = null;
 
-    if (activeDropTargetInfo) {
+    // Direct hit-test on release to handle view updates (e.g. date switch) where handlePointerMove might not have fired
+    const elements = document.elementsFromPoint(e.clientX, e.clientY);
+    let foundDateTarget: HTMLElement | undefined;
+    
+    for (const el of elements) {
+        if (el instanceof HTMLElement && el.hasAttribute('data-calendar-date')) {
+            foundDateTarget = el;
+            break;
+        }
+    }
+
+    if (foundDateTarget) {
+        const dateStr = foundDateTarget.getAttribute('data-calendar-date');
+        if (dateStr) {
+            onTaskMove(draggedTask.id, dateStr, null, 'after');
+        }
+    } else if (activeDropTargetInfo) {
       const { targetId, targetType, position } = activeDropTargetInfo;
       
       if (targetType === 'date' && targetId) {
-        // 날짜로 이동
+        // This case might be redundant due to the check above, but kept for safety
         onTaskMove(draggedTask.id, targetId, null, 'after');
       } else if (targetType === 'task' && targetId) {
         // 순서 변경

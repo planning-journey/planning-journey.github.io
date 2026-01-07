@@ -303,7 +303,7 @@ function App() {
     if (!selectedProjectId) return;
 
     if (targetDate) {
-      // 1. Move to another date
+      // Case A: Dropped on a Date Cell -> Move to that date (append to end)
       const targetTasks = await db.tasks
         .where({ date: targetDate, projectId: selectedProjectId })
         .toArray();
@@ -319,38 +319,45 @@ function App() {
       showToast('할 일이 이동되었습니다.');
       
     } else if (targetTaskId) {
-      // 2. Reorder within the same date
-      // Fetch all tasks for the current date
+      // Case B: Dropped on another Task -> Reorder (possibly moving dates)
+      
+      // 1. Get the task being dragged
+      const draggedTask = await db.tasks.get(taskId);
+      if (!draggedTask) return;
+
+      // 2. Get all tasks in the CURRENT view (destination)
       const currentTasks = await db.tasks
         .where({ date: formattedSelectedDate, projectId: selectedProjectId })
         .sortBy('order');
       
-      const draggedTaskIndex = currentTasks.findIndex(t => t.id === taskId);
-      if (draggedTaskIndex === -1) return;
+      // 3. Remove dragged task from the list if it's already there (same date reorder)
+      //    If it's from another date, it won't be in this list, which is fine.
+      const filteredTasks = currentTasks.filter(t => t.id !== taskId);
 
-      const draggedTask = currentTasks[draggedTaskIndex];
-      // Remove dragged task from array
-      const newTasks = [...currentTasks];
-      newTasks.splice(draggedTaskIndex, 1);
-
-      // Find target index
-      let targetIndex = newTasks.findIndex(t => t.id === targetTaskId);
+      // 4. Find the index of the target task
+      let targetIndex = filteredTasks.findIndex(t => t.id === targetTaskId);
       if (targetIndex === -1) {
-          // If target not found (shouldn't happen), push to end
-          targetIndex = newTasks.length;
+          // Fallback: append if target not found
+          targetIndex = filteredTasks.length;
       } else {
-        // Adjust index based on 'after'
         if (position === 'after') {
           targetIndex += 1;
         }
       }
 
-      // Insert at new position
-      newTasks.splice(targetIndex, 0, draggedTask);
+      // 5. Insert the dragged task at the calculated index
+      //    Update its date to the current view's date
+      const updatedDraggedTask = { ...draggedTask, date: formattedSelectedDate };
+      filteredTasks.splice(targetIndex, 0, updatedDraggedTask);
 
-      // Batch update orders
-      const updates = newTasks.map((task, index) => {
-        return db.tasks.update(task.id, { order: index });
+      // 6. Batch update: Update orders and dates for all affected tasks
+      //    We update 'date' for all just to be safe, or specifically for the moved one.
+      //    Updating all ensures consistency.
+      const updates = filteredTasks.map((task, index) => {
+        return db.tasks.update(task.id, { 
+            order: index,
+            date: formattedSelectedDate // Ensure date is correct (moves task if needed)
+        });
       });
       
       await Promise.all(updates);
