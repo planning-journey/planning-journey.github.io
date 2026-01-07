@@ -129,6 +129,7 @@ function App() {
     const newProject: Project = { id: uuidv4(), name };
     await db.projects.add(newProject);
     setSelectedProjectId(newProject.id); // Select the newly added project
+    setShowSidebar(false); // Close sidebar after adding a project
     showToast(`'${name}' 프로젝트가 추가되었습니다.`);
   }, [showToast]);
 
@@ -201,7 +202,7 @@ function App() {
   const handleDateSelect = useCallback((date: Date) => {
     setSelectedDate(date);
     setCurrentCalendarViewDate(date);
-  }, [handleSelectProject]);
+  }, []);
 
   const handleCalendarViewChange = useCallback((date: Date) => {
     if (!isSameMonthYear(date, currentCalendarViewDate)) {
