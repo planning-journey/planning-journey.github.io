@@ -3,14 +3,15 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type Goal } from '../db';
 import { Pencil, X } from 'lucide-react';
 import useBodyScrollLock from '../utils/useBodyScrollLock';
+import Checkbox from './Checkbox';
 
 interface GoalManagementModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddNewGoal: (projectId: string | null) => void; // Modified to accept projectId
+  onAddNewGoal: (projectId: string | null) => void;
   onEditGoal: (goal: Goal) => void;
   onDeleteGoal: (id: string) => void;
-  selectedProjectId: string | null; // Add selectedProjectId prop
+  selectedProjectId: string | null;
 }
 
 // Helper function to get the week number of the month (1-indexed)
@@ -57,12 +58,25 @@ const formatPeriod = (goal: Goal): string => {
   }
 };
 
+type TabType = 'in_progress' | 'completed' | 'all';
 
 const GoalManagementModal = ({ isOpen, onClose, onAddNewGoal, onEditGoal, onDeleteGoal, selectedProjectId }: GoalManagementModalProps) => {
   useBodyScrollLock(isOpen);
+  const [activeTab, setActiveTab] = useState<TabType>('in_progress');
+
   const allGoals = useLiveQuery(() => db.goals.toArray(), []) as Goal[] | undefined;
-  // Filter goals by selectedProjectId
-  const goals = allGoals ? allGoals.filter(goal => goal.projectId === selectedProjectId) : [];
+  
+  // Filter goals by selectedProjectId and activeTab
+  const filteredGoals = allGoals?.filter(goal => {
+    if (goal.projectId !== selectedProjectId) return false;
+
+    if (activeTab === 'in_progress') {
+      return goal.status !== 'completed';
+    } else if (activeTab === 'completed') {
+      return goal.status === 'completed';
+    }
+    return true; // 'all'
+  }) || [];
 
   const [visible, setVisible] = useState(isOpen);
   const [animated, setAnimated] = useState(isOpen);
@@ -82,6 +96,11 @@ const GoalManagementModal = ({ isOpen, onClose, onAddNewGoal, onEditGoal, onDele
       return () => clearTimeout(timeoutId);
     }
   }, [isOpen]);
+
+  const handleToggleGoal = async (goal: Goal) => {
+    const newStatus = goal.status === 'completed' ? 'in_progress' : 'completed';
+    await db.goals.update(goal.id, { status: newStatus });
+  };
 
   // If not visible, return null to unmount
   if (!visible) {
@@ -108,21 +127,49 @@ const GoalManagementModal = ({ isOpen, onClose, onAddNewGoal, onEditGoal, onDele
           </button>
         </div>
 
-        <div className="p-4 overflow-y-auto flex-[1_1_0]"> {/* Adjusted height to account for header and footer */}
+        {/* Tabs */}
+        <div className="px-4 pt-4">
+          <div className="flex p-1 space-x-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+            {(['in_progress', 'completed', 'all'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`
+                  w-full py-2.5 text-sm font-medium leading-5 rounded-lg focus:outline-none transition-all duration-300
+                  ${activeTab === tab
+                    ? 'bg-white dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 shadow'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  }
+                `}
+              >
+                {tab === 'in_progress' ? '진행중' : tab === 'completed' ? '완료' : '전체'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="p-4 overflow-y-auto flex-[1_1_0]">
           <div className="h-full overflow-y-auto pr-2 custom-scrollbar">
-            {goals && goals.length > 0 ? (
+            {filteredGoals && filteredGoals.length > 0 ? (
                 <div className="flex flex-col">
-                    {goals.map((goal) => (
+                    {filteredGoals.map((goal) => (
                         <div
                           key={goal.id}
                           className="flex items-center py-2 px-3 border-b border-slate-200/50 dark:border-slate-700 last:border-b-0"
                         >
-                          <div className="flex items-start flex-grow gap-2">
-                            <div className="h-6 flex items-center">
+                          <div className="flex items-center flex-grow gap-2">
+                             <Checkbox
+                                checked={goal.status === 'completed'}
+                                onChange={() => handleToggleGoal(goal)}
+                                className="mr-2"
+                              />
+                            <div className="flex items-center mr-3 h-6">
                               <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: goal.color }}></div>
                             </div>
                             <div className="overflow-hidden">
-                              <span className="font-semibold text-gray-900 dark:text-white break-all">{goal.name}</span>
+                              <span className={`font-semibold break-all ${goal.status === 'completed' ? 'text-slate-400 dark:text-slate-500 line-through' : 'text-gray-900 dark:text-white'}`}>
+                                {goal.name}
+                              </span>
                               <p className="text-sm text-gray-500 dark:text-slate-400">{formatPeriod(goal)}</p>
                             </div>
                           </div>
@@ -145,14 +192,18 @@ const GoalManagementModal = ({ isOpen, onClose, onAddNewGoal, onEditGoal, onDele
                     ))}
                 </div>
             ) : (
-                <p className="text-gray-500 dark:text-slate-400 text-center py-10">아직 목표가 없습니다. 새로운 목표를 추가해보세요!</p>
+                <p className="text-gray-500 dark:text-slate-400 text-center py-10">
+                  {activeTab === 'in_progress' && '진행 중인 목표가 없습니다.'}
+                  {activeTab === 'completed' && '완료된 목표가 없습니다.'}
+                  {activeTab === 'all' && '아직 목표가 없습니다. 새로운 목표를 추가해보세요!'}
+                </p>
             )}
           </div>
         </div>
 
         <div className="p-4 border-t border-slate-200/50 dark:border-slate-700">
           <button
-            onClick={() => onAddNewGoal(selectedProjectId)} // Pass selectedProjectId
+            onClick={() => onAddNewGoal(selectedProjectId)}
             className="w-full px-5 py-3 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-500 transition-all duration-300 shadow-md"
           >
             신규 목표 추가

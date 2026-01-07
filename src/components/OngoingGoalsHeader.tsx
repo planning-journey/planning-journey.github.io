@@ -47,7 +47,7 @@ const OngoingGoalsHeader = ({ goals, selectedDate, onGoalSelect, selectedProject
         const endDate = new Date(goal.endDate);
         endDate.setHours(0, 0, 0, 0);
 
-        return startDate <= startOfDay && startOfDay <= endDate && endDate >= today;
+        return goal.status !== 'completed' && startDate <= startOfDay && startOfDay <= endDate && endDate >= today;
       })
       .sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
   }, [goals, selectedDate, selectedProjectId]);

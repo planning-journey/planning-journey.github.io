@@ -35,7 +35,7 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
         .toArray();
 
       return goals.filter(goal => {
-        return goal.startDate <= formattedDate && goal.endDate >= formattedDate;
+        return goal.status !== 'completed' && goal.startDate <= formattedDate && goal.endDate >= formattedDate;
       });
     },
     [selectedDate, selectedProjectId]
