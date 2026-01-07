@@ -11,11 +11,6 @@ GitHub Pages 배포 시 가장 중요한 설정은 프로젝트가 호스팅되�
 - **저장소 이름**: 반드시 `${username}.github.io`여야 함.
 - **설정**: `base: '/'`
 
-### CASE B: 프로젝트 페이지 (하위 경로)
-- **URL**: `https://${username}.github.io/${repoName}/`
-- **저장소 이름**: 자유 (예: `planning-journey`)
-- **설정**: `base: '/${repoName}/'`
-
 `vite.config.ts`를 다음과 같이 수정합니다:
 
 ```typescript
@@ -25,9 +20,8 @@ import react from '@vitejs/plugin-react-swc'
 
 export default defineConfig({
   plugins: [react()],
-  // 본인의 저장소 이름이 'planning-journey'라면 '/planning-journey/'로 설정
   // 사용자 페이지(username.github.io)라면 '/'로 설정
-  base: '/planning-journey/', 
+  base: '/', 
 })
 ```
 

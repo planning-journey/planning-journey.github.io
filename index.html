@@ -15,6 +15,10 @@
           var decoded = l.search.slice(1).split('&').map(function(s) { 
             return s.replace(/~and~/g, '&')
           }).join('?');
+          
+          // 현재 앱이 관리하지 않는 경로(예: /123123)로 직접 접근했을 때 
+          // 라우터가 없다면 루트로 보내는 것이 안전합니다.
+          // 나중에 react-router-dom을 사용하게 되면 이 로직은 유지되어야 합니다.
           window.history.replaceState(null, null,
               l.pathname.slice(0, -1) + decoded + l.hash
           );
