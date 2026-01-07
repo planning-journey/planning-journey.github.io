@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { db, type Goal } from '../db'; // Import Goal interface
 import Calendar from './Calendar'; // Import the custom Calendar component
-import { formatDateForDisplay, formatDateToYYYYMMDD } from '../utils/dateUtils';
+import { formatDateForDisplay, formatDateToYYYYMMDD, formateYYYYMMDDToDate } from '../utils/dateUtils';
 
 // Type definitions
 type PeriodTypeOption = 'daily' | 'weekly' | 'monthly' | 'yearly' | 'free';
@@ -64,14 +64,9 @@ const getEndOfWeek = (date: Date, weekStartsOn: 0 | 1 = 0) => {
 const datesAreEqual = (date1: Date | null, date2: Date | null) => {
   if (date1 === null && date2 === null) return true;
   if (date1 === null || date2 === null) return false;
-  return date1.getTime() === date2.getTime();
-};
-
-const parseYYYYMMDD = (dateStr: string): Date => {
-  const year = parseInt(dateStr.substring(0, 4));
-  const month = parseInt(dateStr.substring(4, 6)) - 1;
-  const day = parseInt(dateStr.substring(6, 8));
-  return new Date(year, month, day);
+  return date1.getFullYear() === date2.getFullYear() &&
+         date1.getMonth() === date2.getMonth() &&
+         date1.getDate() === date2.getDate();
 };
 
 const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: GoalEditorModalProps) => {
@@ -87,6 +82,7 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: Goa
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(new Date());
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
     if (isOpen && nameInputRef.current) {
@@ -102,13 +98,14 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: Goa
   // Effect to populate form when goalToEdit changes
   useEffect(() => {
     if (isOpen) { // Only set state if modal is open
+      setIsInitialLoad(true);
       if (goalToEdit) {
         setName(goalToEdit.name);
         setColor(goalToEdit.color);
         setPeriodType(goalToEdit.periodType);
 
-        const editStartDate = parseYYYYMMDD(goalToEdit.startDate);
-        const editEndDate = parseYYYYMMDD(goalToEdit.endDate);
+        const editStartDate = formateYYYYMMDDToDate(goalToEdit.startDate);
+        const editEndDate = formateYYYYMMDDToDate(goalToEdit.endDate);
 
         setYear(editStartDate.getFullYear());
         setMonth(editStartDate.getMonth() + 1);
@@ -127,15 +124,14 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: Goa
         setStartDate(null);
         setEndDate(null);
       }
+      // Use a small timeout to ensure states are set before allowing calculations
+      setTimeout(() => setIsInitialLoad(false), 100);
     }
   }, [isOpen, goalToEdit]);
 
 
   useEffect(() => {
-    if (periodType === 'free') {
-      // For 'free' type, startDate and endDate are managed by user interaction
-      // with the Calendar component or initialized from goalToEdit.
-      // This effect should not interfere.
+    if (isInitialLoad || periodType === 'free') {
       return;
     }
 
@@ -166,7 +162,7 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: Goa
       setStartDate(calculatedStartDate);
       setEndDate(calculatedEndDate);
     }
-  }, [periodType, year, month, selectedCalendarDate, getStartOfYear, getEndOfYear, getStartOfMonth, getEndOfMonth, getStartOfWeek, getEndOfWeek, startDate, endDate]);
+  }, [periodType, year, month, selectedCalendarDate, isInitialLoad]);
 
   // Reset selectedCalendarDate when periodType changes to avoid weird state issues
   useEffect(() => {
