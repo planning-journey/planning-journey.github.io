@@ -1,12 +1,22 @@
-# GitHub Pages 배포 가이드 (커스텀 서브 도메인)
+# GitHub Pages 배포 가이드 (GitHub 기본 도메인)
 
-이 가이드는 Vite로 제작된 본 프로젝트를 GitHub Actions를 통해 GitHub Pages에 배포하고, 커스텀 서브 도메인(예: `planning.yourdomain.com`)을 연결하는 방법을 설명합니다.
+이 가이드는 프로젝트를 `${username}.github.io` 또는 `${username}.github.io/${repoName}` 형식의 GitHub 기본 제공 도메인에 배포하는 방법을 설명합니다.
 
-## 1. Vite 설정 수정
+## 1. Vite 설정 (`base` 경로 설정)
 
-서브 도메인의 루트(`/`)에서 서비스할 경우 `base` 설정이 중요합니다.
+GitHub Pages 배포 시 가장 중요한 설정은 프로젝트가 호스팅되는 경로(URL)를 Vite에 알리는 것입니다.
 
-`vite.config.ts` 파일을 다음과 같이 수정합니다:
+### CASE A: 사용자/조직 페이지 (루트 도메인)
+- **URL**: `https://${username}.github.io/`
+- **저장소 이름**: 반드시 `${username}.github.io`여야 함.
+- **설정**: `base: '/'`
+
+### CASE B: 프로젝트 페이지 (하위 경로)
+- **URL**: `https://${username}.github.io/${repoName}/`
+- **저장소 이름**: 자유 (예: `planning-journey`)
+- **설정**: `base: '/${repoName}/'`
+
+`vite.config.ts`를 다음과 같이 수정합니다:
 
 ```typescript
 // vite.config.ts
@@ -15,28 +25,22 @@ import react from '@vitejs/plugin-react-swc'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/', // 서브 도메인을 사용할 경우 '/'로 설정
-  // ... 기존 설정
+  // 본인의 저장소 이름이 'planning-journey'라면 '/planning-journey/'로 설정
+  // 사용자 페이지(username.github.io)라면 '/'로 설정
+  base: '/planning-journey/', 
 })
 ```
 
-## 2. CNAME 파일 생성
+## 2. GitHub Actions 워크플로우 설정
 
-배포 시 도메인 설정을 유지하기 위해 `public` 디렉터리에 `CNAME` 파일을 생성해야 합니다.
-
-1. `public/CNAME` 파일을 만듭니다.
-2. 파일 내용에 사용할 서브 도메인만 입력합니다. (예: `planning.example.com`)
-
-## 3. GitHub Actions 워크플로우 설정
-
-`.github/workflows/deploy.yml` 파일을 생성하여 자동 배포를 설정합니다.
+저장소에 푸시하면 자동으로 빌드 및 배포되도록 `.github/workflows/deploy.yml` 파일을 생성합니다.
 
 ```yaml
 name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ "master" ] # 또는 본인의 기본 브랜치 이름
+    branches: [ "master" ] # 기본 브랜치 이름 확인 (master 또는 main)
 
 permissions:
   contents: read
@@ -79,23 +83,12 @@ jobs:
         uses: actions/deploy-pages@v4
 ```
 
-## 4. GitHub 저장소 설정
+## 3. GitHub 저장소 설정 (중요)
 
 1. GitHub 저장소의 **Settings > Pages** 메뉴로 이동합니다.
-2. **Build and deployment > Source**를 `GitHub Actions`로 변경합니다.
-3. **Custom domain** 섹션에 서브 도메인(`planning.example.com`)을 입력하고 Save를 누릅니다. (이미 CNAME 파일을 만들었다면 자동으로 채워질 수 있습니다.)
+2. **Build and deployment > Source** 항목에서 `Deploy from a branch`가 아닌 **`GitHub Actions`**를 선택합니다.
+3. 코드를 `master` 브랜치에 푸시하면 **Actions** 탭에서 배포 진행 상황을 확인할 수 있습니다.
 
-## 5. DNS 설정 (도메인 구입처)
+## 4. SPA 라우팅 주의사항 (참고)
 
-본인의 도메인 관리 페이지(가비아, Cloudflare, GoDaddy 등)에서 다음과 같이 DNS 레코드를 추가합니다.
-
-| 타입 | 이름 (Host) | 값 (Value/Points to) |
-| :--- | :--- | :--- |
-| **CNAME** | `planning` | `your-github-username.github.io.` |
-
-- **주의**: 값 끝에 점(`.`)이 필요한 경우가 있으니 관리 도구의 안내를 확인하세요.
-- DNS 전파에는 수 분에서 최대 24시간이 소요될 수 있습니다.
-
-## 6. SPA 라우팅 대응 (선택 사항)
-
-만약 나중에 `react-router-dom` 등을 사용하여 Browser Routing을 추가한다면, GitHub Pages에서 발생하는 404 오류를 방지하기 위해 `public/404.html` 트릭을 사용해야 합니다. 현재는 단일 페이지 기반이므로 필수 사항은 아닙니다.
+GitHub Pages는 기본적으로 Single Page Application(SPA)의 클라이언트 라우팅을 지원하지 않습니다. 만약 추후에 페이지 이동 기능(React Router 등)을 추가할 경우, 직접 URL을 입력해 접속하면 404 오류가 발생합니다. 이 경우 `public/404.html` 파일을 생성하여 `index.html`로 리다이렉트시키는 트릭이 필요합니다.
