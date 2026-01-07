@@ -1,13 +1,11 @@
 import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { type Task, db } from '../db';
+import { type Task } from '../db';
 
 interface DragDropContextType {
   isDragging: boolean;
   draggedTask: Task | null;
   startDrag: (task: Task, event: React.PointerEvent) => void;
-  registerDropZone: (id: string, element: HTMLElement) => void;
-  unregisterDropZone: (id: string) => void;
 }
 
 const DragDropContext = createContext<DragDropContextType | null>(null);
@@ -25,6 +23,13 @@ interface DragDropProviderProps {
   onTaskMove: (taskId: string, targetDate: string | null, targetTaskId?: string | null, position?: 'before' | 'after') => void;
 }
 
+interface DropIndicatorState {
+  x: number;
+  y: number;
+  width: number;
+  type: 'task-gap' | 'date-highlight';
+}
+
 export const DragDropProvider: React.FC<DragDropProviderProps> = ({
   children,
   onDateSwitch,
@@ -35,29 +40,32 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   
-  // 드래그 시작 시점의 오프셋 (마우스 포인터와 요소 왼쪽 상단 사이의 거리)
+  // 드랍 인디케이터 (파란색 선 또는 영역)
+  const [dropIndicator, setDropIndicator] = useState<DropIndicatorState | null>(null);
+  const [activeDropTargetInfo, setActiveDropTargetInfo] = useState<{
+    targetId: string | null; // task id or date string
+    targetType: 'task' | 'date';
+    position: 'before' | 'after' | 'inside';
+  } | null>(null);
+
   const dragOffset = useRef({ x: 0, y: 0 });
-  
-  // 날짜 전환 타이머 관련
   const dateSwitchTimer = useRef<NodeJS.Timeout | null>(null);
   const lastHoveredDateStr = useRef<string | null>(null);
 
-  // 드랍존 관리 (TaskItem들의 위치 정보)
-  const dropZones = useRef<Map<string, HTMLElement>>(new Map());
-
-  // 스크롤 방지
   useEffect(() => {
     if (isDragging) {
       document.body.style.userSelect = 'none';
       document.body.style.cursor = 'grabbing';
+      document.body.style.overflow = 'hidden'; // Prevent scrolling while dragging for now
     } else {
       document.body.style.userSelect = '';
       document.body.style.cursor = '';
+      document.body.style.overflow = '';
     }
   }, [isDragging]);
 
   const startDrag = useCallback((task: Task, e: React.PointerEvent) => {
-    e.preventDefault();
+    // e.preventDefault(); // removed to allow scrolling initiation if needed, but usually block for drag
     const element = e.currentTarget as HTMLElement;
     const rect = element.getBoundingClientRect();
     
@@ -74,7 +82,7 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
   }, []);
 
   const handlePointerMove = useCallback((e: PointerEvent) => {
-    if (!isDragging) return;
+    if (!isDragging || !draggedTask) return;
 
     // 1. 오버레이 위치 업데이트
     setPosition({
@@ -83,27 +91,55 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
     });
 
     // 2. 요소 감지 (Hit Testing)
+    // 오버레이가 pointer-events: none이어야 함.
     const elements = document.elementsFromPoint(e.clientX, e.clientY);
     
-    // 2-1. 캘린더 날짜 감지
-    const calendarCell = elements.find(el => el.hasAttribute('data-calendar-date')) as HTMLElement | undefined;
-    
-    if (calendarCell) {
-      const dateStr = calendarCell.getAttribute('data-calendar-date');
+    // 타겟 초기화
+    let foundTaskTarget: HTMLElement | undefined;
+    let foundDateTarget: HTMLElement | undefined;
+
+    for (const el of elements) {
+      if (el instanceof HTMLElement) {
+        if (!foundTaskTarget && el.hasAttribute('data-task-id')) {
+          foundTaskTarget = el;
+        }
+        if (!foundDateTarget && el.hasAttribute('data-calendar-date')) {
+          foundDateTarget = el;
+        }
+      }
+    }
+
+    // 우선순위: 날짜 셀 > 태스크 아이템
+    // 날짜 셀 위에 있으면 날짜 이동 로직 우선
+    if (foundDateTarget) {
+      const dateStr = foundDateTarget.getAttribute('data-calendar-date');
+      
+      // 날짜 전환 타이머
       if (dateStr && dateStr !== lastHoveredDateStr.current) {
-        // 새로운 날짜에 진입
         if (dateSwitchTimer.current) clearTimeout(dateSwitchTimer.current);
         lastHoveredDateStr.current = dateStr;
-        
         dateSwitchTimer.current = setTimeout(() => {
-          const newDate = new Date(dateStr);
-          onDateSwitch(newDate);
-          // 날짜가 바뀌면 드랍존 맵을 비우거나 하는 로직이 필요할 수 있지만, 
-          // 리액트 라이프사이클에 의해 TaskList가 다시 렌더링되면서 처리됨.
-        }, 500); // 0.5초 대기
+          onDateSwitch(new Date(dateStr));
+        }, 500);
       }
+
+      // 인디케이터 표시 (날짜 셀 강조)
+      const rect = foundDateTarget.getBoundingClientRect();
+      setDropIndicator({
+        x: rect.left,
+        y: rect.top,
+        width: rect.width, // Not used for date highlight logic directly but kept for structure
+        type: 'date-highlight' // Special type for date highlight
+      });
+      setActiveDropTargetInfo({
+        targetId: dateStr,
+        targetType: 'date',
+        position: 'inside'
+      });
+      
+      return; // 날짜 타겟 처리 완료
     } else {
-      // 날짜 영역을 벗어남
+      // 날짜 영역 벗어남 -> 타이머 해제
       if (dateSwitchTimer.current) {
         clearTimeout(dateSwitchTimer.current);
         dateSwitchTimer.current = null;
@@ -111,48 +147,62 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
       lastHoveredDateStr.current = null;
     }
 
-  }, [isDragging, onDateSwitch]);
+    // 태스크 타겟 처리
+    if (foundTaskTarget) {
+      const targetId = foundTaskTarget.getAttribute('data-task-id');
+      if (targetId !== draggedTask.id) {
+        const rect = foundTaskTarget.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        const isAfter = e.clientY > midY;
+        
+        setDropIndicator({
+          x: rect.left + 4, // Slight indent
+          y: isAfter ? rect.bottom : rect.top,
+          width: rect.width - 8,
+          type: 'task-gap'
+        });
+        setActiveDropTargetInfo({
+          targetId: targetId,
+          targetType: 'task',
+          position: isAfter ? 'after' : 'before'
+        });
+        return;
+      }
+    }
+
+    // 아무 곳도 아님
+    setDropIndicator(null);
+    setActiveDropTargetInfo(null);
+
+  }, [isDragging, draggedTask, onDateSwitch]);
 
   const handlePointerUp = useCallback((e: PointerEvent) => {
     if (!isDragging || !draggedTask) return;
 
-    // 타이머 정리
     if (dateSwitchTimer.current) {
       clearTimeout(dateSwitchTimer.current);
       dateSwitchTimer.current = null;
     }
     lastHoveredDateStr.current = null;
 
-    // 드랍 로직
-    // 현재 마우스 위치에 있는 TaskItem을 찾아서 그 위치를 계산
-    const elements = document.elementsFromPoint(e.clientX, e.clientY);
-    const dropTarget = elements.find(el => el.hasAttribute('data-task-id')) as HTMLElement | undefined;
-    
-    // 날짜 타겟 확인 (다른 날짜에 드랍하는 경우)
-    const calendarCell = elements.find(el => el.hasAttribute('data-calendar-date')) as HTMLElement | undefined;
-
-    if (calendarCell) {
-        const dateStr = calendarCell.getAttribute('data-calendar-date');
-        if (dateStr) {
-             // 다른 날짜로 이동 (순서는 마지막으로)
-             onTaskMove(draggedTask.id, dateStr, null, 'after');
-        }
-    } else if (dropTarget) {
-      const targetId = dropTarget.getAttribute('data-task-id');
-      if (targetId && targetId !== draggedTask.id) {
-        // 같은 날짜 내 순서 변경
-        // 타겟 요소의 중간을 기준으로 위/아래 판별
-        const rect = dropTarget.getBoundingClientRect();
-        const isBottom = e.clientY > rect.top + rect.height / 2;
-        
-        const position = isBottom ? 'after' : 'before';
-        onTaskMove(draggedTask.id, null, targetId, position);
+    if (activeDropTargetInfo) {
+      const { targetId, targetType, position } = activeDropTargetInfo;
+      
+      if (targetType === 'date' && targetId) {
+        // 날짜로 이동
+        onTaskMove(draggedTask.id, targetId, null, 'after');
+      } else if (targetType === 'task' && targetId) {
+        // 순서 변경
+        onTaskMove(draggedTask.id, null, targetId, position as 'before' | 'after');
       }
     }
 
+    // Reset
     setIsDragging(false);
     setDraggedTask(null);
-  }, [isDragging, draggedTask, onTaskMove]);
+    setDropIndicator(null);
+    setActiveDropTargetInfo(null);
+  }, [isDragging, draggedTask, activeDropTargetInfo, onTaskMove]);
 
   useEffect(() => {
     if (isDragging) {
@@ -165,32 +215,58 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
     };
   }, [isDragging, handlePointerMove, handlePointerUp]);
 
-  const registerDropZone = useCallback((id: string, element: HTMLElement) => {
-    dropZones.current.set(id, element);
-  }, []);
-
-  const unregisterDropZone = useCallback((id: string) => {
-    dropZones.current.delete(id);
-  }, []);
-
   return (
-    <DragDropContext.Provider value={{ isDragging, draggedTask, startDrag, registerDropZone, unregisterDropZone }}>
+    <DragDropContext.Provider value={{ isDragging, draggedTask, startDrag }}>
       {children}
-      {isDragging && draggedTask && createPortal(
-        <div
-            className="fixed z-50 pointer-events-none bg-white dark:bg-slate-800 p-4 rounded-xl shadow-2xl border-2 border-indigo-500 opacity-90 w-64"
-            style={{
+      {isDragging && (
+        <>
+          {/* Drag Overlay (Follows Cursor) */}
+          {draggedTask && createPortal(
+            <div
+              className="fixed z-[60] pointer-events-none bg-white dark:bg-slate-800 p-3 rounded-lg shadow-xl border border-indigo-200 dark:border-indigo-700 w-64 flex flex-col gap-1"
+              style={{
                 left: position.x,
                 top: position.y,
-                transform: 'rotate(3deg)', // 살짝 기울여서 드래그 느낌 내기
-            }}
-        >
-            <div className="font-medium text-gray-900 dark:text-white truncate">{draggedTask.title}</div>
-            {draggedTask.description && (
-                <div className="text-xs text-gray-500 mt-1 truncate">{draggedTask.description}</div>
-            )}
-        </div>,
-        document.body
+                transform: 'rotate(2deg) scale(1.02)',
+                opacity: 0.9,
+              }}
+            >
+              <div className="font-semibold text-gray-900 dark:text-white text-sm truncate">{draggedTask.title}</div>
+              {draggedTask.description && (
+                <div className="text-xs text-gray-500 truncate">{draggedTask.description}</div>
+              )}
+            </div>,
+            document.body
+          )}
+
+          {/* Drop Indicator (Blue Line for Tasks) */}
+          {dropIndicator && dropIndicator.type === 'task-gap' && createPortal(
+            <div
+              className="fixed z-[55] pointer-events-none bg-indigo-500 rounded-full shadow-sm transition-all duration-75 ease-out"
+              style={{
+                height: '4px',
+                width: dropIndicator.width,
+                left: dropIndicator.x,
+                top: dropIndicator.y - 2, // Center the line on the gap
+              }}
+            />,
+            document.body
+          )}
+
+          {/* Drop Indicator (Highlight for Date Cells) */}
+          {dropIndicator && dropIndicator.type === 'date-highlight' && createPortal(
+             <div
+              className="fixed z-[55] pointer-events-none border-2 border-indigo-500 rounded-xl bg-indigo-500/20 transition-all duration-75 ease-out"
+              style={{
+                width: '56px', // Fixed width for date cell (w-14)
+                height: '64px', // Approx height
+                left: dropIndicator.x,
+                top: dropIndicator.y,
+              }}
+            />,
+            document.body
+          )}
+        </>
       )}
     </DragDropContext.Provider>
   );
