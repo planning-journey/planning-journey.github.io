@@ -64,6 +64,13 @@ function App() {
     }
   }, [projects, selectedProjectId]);
 
+  // Effect to ensure sidebar is open on mobile if no project is selected
+  useEffect(() => {
+    if (!selectedProjectId) {
+      setShowSidebar(true);
+    }
+  }, [selectedProjectId]);
+
   // Project Management States
 
   const goals = useLiveQuery(() => db.goals.toArray());
@@ -430,7 +437,10 @@ function App() {
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-slate-400 text-lg md:pl-64">
+          <div
+            className="flex-1 flex items-center justify-center text-gray-500 dark:text-slate-400 text-lg md:pl-64 cursor-pointer active:bg-gray-200 dark:active:bg-slate-800 transition-colors duration-200"
+            onClick={() => setShowSidebar(true)}
+          >
             프로젝트를 생성하거나 선택하세요.
           </div>
         )}
