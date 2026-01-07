@@ -210,9 +210,11 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
             const projectGoals = selectedProjectId ? allGoals.filter(goal => goal.projectId === selectedProjectId) : [];
             const projectDailyEvaluations = selectedProjectId ? allDailyEvaluations.filter(evaluation => evaluation.projectId === selectedProjectId) : [];
 
-            // Check for tasks
-            const hasTasks = projectTasks.some(task => task.date === formattedDate);
-
+            // Task Logic
+            const tasksOnDate = projectTasks.filter(task => task.date === formattedDate);
+            const hasTasks = tasksOnDate.length > 0;
+            const hasIncompleteTasks = tasksOnDate.some(task => !task.completed);
+            
             // Check for evaluations
             const hasEvaluation = projectDailyEvaluations.some(
               evaluation => evaluation.date === formattedDate && evaluation.evaluationText && evaluation.evaluationText.trim().length > 0
@@ -220,6 +222,9 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
 
             // Check for goals ending on this date
             const hasEndingGoals = projectGoals.some(goal => {
+              // Skip completed goals
+              if (goal.status === 'completed') return false;
+
               // Convert goal.endDate from string to Date object
               const goalEndDate = new Date(goal.endDate);
               // Normalize goalEndDate to compare only date part
@@ -245,9 +250,30 @@ const InlineCalendar: React.FC<InlineCalendarProps> = ({ onDateSelect, onViewCha
                 <div className="text-xs mt-2">{new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(date)}</div>
                 <div>{date.getDate()}</div>
                 <div className="flex items-center justify-center gap-1 h-4 flex-none">
-                  {hasTasks ? <span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span> : <span className="w-1.5 h-1.5 bg-slate-200/75 dark:bg-slate-700 rounded-full"></span>}
-                  {hasEvaluation ? <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span> : <span className="w-1.5 h-1.5 bg-slate-200/75 dark:bg-slate-700 rounded-full"></span>}
-                  {hasEndingGoals ? <span className="w-1.5 h-1.5 bg-red-400 rounded-full"></span> : <span className="w-1.5 h-1.5 bg-slate-200/75 dark:bg-slate-700 rounded-full"></span>}
+                  {/* Task Dot */}
+                  {hasTasks ? (
+                    hasIncompleteTasks ? (
+                      <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
+                    ) : (
+                      <span className="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
+                    )
+                  ) : (
+                    <span className="w-1.5 h-1.5 bg-slate-200/75 dark:bg-slate-700 rounded-full"></span>
+                  )}
+                  
+                  {/* Evaluation Dot */}
+                  {hasEvaluation ? (
+                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                  ) : (
+                    <span className="w-1.5 h-1.5 bg-slate-200/75 dark:bg-slate-700 rounded-full"></span>
+                  )}
+
+                  {/* Goal Dot */}
+                  {hasEndingGoals ? (
+                    <span className="w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
+                  ) : (
+                    <span className="w-1.5 h-1.5 bg-slate-200/75 dark:bg-slate-700 rounded-full"></span>
+                  )}
                 </div>
               </div>
             );
