@@ -29,9 +29,9 @@ const TaskItem = React.forwardRef<HTMLDivElement, TaskItemProps>(({ task, onView
         />
         <div>
           {goal && (
-            <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400">
+            <div className={`flex items-center gap-1 text-sm ${goal.status === 'completed' ? 'text-slate-400 dark:text-slate-600 line-through' : 'text-gray-500 dark:text-slate-400'}`}>
               <span
-                className="block h-2 w-2 rounded-full"
+                className={`block h-2 w-2 rounded-full ${goal.status === 'completed' ? 'opacity-50' : ''}`}
                 style={{ backgroundColor: goal.color }}
               ></span>
               <span>{goal.name}</span>
