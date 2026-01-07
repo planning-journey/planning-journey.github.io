@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import useBodyScrollLock from '../utils/useBodyScrollLock';
+import { v4 as uuidv4 } from 'uuid';
 
 import { db, type Goal } from '../db'; // Import Goal interface
 import Calendar from './Calendar'; // Import the custom Calendar component
+import { formatDateForDisplay, formatDateToYYYYMMDD } from '../utils/dateUtils';
 
 // Type definitions
 type PeriodTypeOption = 'daily' | 'weekly' | 'monthly' | 'yearly' | 'free';
@@ -57,13 +59,19 @@ const getEndOfWeek = (date: Date, weekStartsOn: 0 | 1 = 0) => {
   end.setHours(23, 59, 59, 999); // Normalize to end of day
   return end;
 };
-import { formatDateForDisplay } from '../utils/dateUtils';
 
 // Helper to compare dates (considering null)
 const datesAreEqual = (date1: Date | null, date2: Date | null) => {
   if (date1 === null && date2 === null) return true;
   if (date1 === null || date2 === null) return false;
   return date1.getTime() === date2.getTime();
+};
+
+const parseYYYYMMDD = (dateStr: string): Date => {
+  const year = parseInt(dateStr.substring(0, 4));
+  const month = parseInt(dateStr.substring(4, 6)) - 1;
+  const day = parseInt(dateStr.substring(6, 8));
+  return new Date(year, month, day);
 };
 
 const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: GoalEditorModalProps) => {
@@ -89,8 +97,8 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: Goa
         setColor(goalToEdit.color);
         setPeriodType(goalToEdit.periodType);
 
-        const editStartDate = new Date(goalToEdit.startDate);
-        const editEndDate = new Date(goalToEdit.endDate);
+        const editStartDate = parseYYYYMMDD(goalToEdit.startDate);
+        const editEndDate = parseYYYYMMDD(goalToEdit.endDate);
 
         setYear(editStartDate.getFullYear());
         setMonth(editStartDate.getMonth() + 1);
@@ -174,13 +182,13 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: Goa
     }
 
     const goalData: Goal = {
-      id: goalToEdit ? goalToEdit.id : crypto.randomUUID(), // Generate ID for new goals
+      id: goalToEdit ? goalToEdit.id : uuidv4(), // Generate ID for new goals
       projectId: selectedProjectId!, // Assign current selected project ID, assuming it's always present when creating a goal
       name,
       color,
       periodType,
-      startDate: startDate.toISOString(), // Convert Date to ISO string for storage
-      endDate: endDate.toISOString(),   // Convert Date to ISO string for storage
+      startDate: formatDateToYYYYMMDD(startDate),
+      endDate: formatDateToYYYYMMDD(endDate),
       status: goalToEdit ? goalToEdit.status : 'pending', // Default status for new goals
       createdAt: goalToEdit ? goalToEdit.createdAt : new Date(), // Keep original createdAt for edits
     };
