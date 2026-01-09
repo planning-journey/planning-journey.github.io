@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { db, type Goal } from '../db'; // Import Goal interface
 import Calendar from './Calendar'; // Import the custom Calendar component
+import DateInput from './DateInput'; // Import DateInput component
 import { formatDateForDisplay, formatDateToYYYYMMDD, formateYYYYMMDDToDate } from '../utils/dateUtils';
 
 // Type definitions
@@ -331,7 +332,7 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: Goa
               )}
 
               {(periodType === 'daily' || periodType === 'weekly' || periodType === 'free') && (
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-center gap-4">
                   <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                     {periodType === 'daily' && '목표일 선택'}
                     {periodType === 'weekly' && '주 선택'}
@@ -345,6 +346,44 @@ const GoalEditorModal = ({ isOpen, onClose, goalToEdit, selectedProjectId }: Goa
                     onSelectDate={handleCalendarDateSelect}
                     onSelectRange={handleCalendarRangeSelect}
                   />
+
+                  {/* Date Input Fields */}
+                  {periodType === 'daily' && (
+                    <div className="w-full max-w-sm">
+                      <DateInput
+                        label="날짜 입력"
+                        value={selectedCalendarDate}
+                        onChange={(date) => {
+                          if (date) setSelectedCalendarDate(date);
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {periodType === 'free' && (
+                    <div className="flex gap-2 w-full max-w-sm">
+                      <DateInput
+                        label="시작일"
+                        value={startDate}
+                        onChange={(date) => {
+                            setStartDate(date);
+                            // If user sets a start date that is after the current end date, clear end date
+                            if (endDate && date && date > endDate) {
+                                setEndDate(null);
+                            }
+                        }}
+                      />
+                      <DateInput
+                        label="종료일"
+                        value={endDate}
+                        onChange={(date) => {
+                            // If user sets an end date that is before the current start date, warn or handle?
+                            // For now just set it, logic elsewhere might handle validation or Calendar handles visual oddities
+                            setEndDate(date);
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
