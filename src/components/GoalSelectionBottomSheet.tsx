@@ -23,6 +23,7 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
 }) => {
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const sheetRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
 
   const filteredGoals = useLiveQuery(
     async () => {
@@ -40,6 +41,19 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
     },
     [selectedDate, selectedProjectId]
   );
+
+  // 스크롤 자동 이동 효과
+  useEffect(() => {
+    if (isOpen) {
+      const activeItem = itemRefs.current[activeIndex];
+      if (activeItem) {
+        activeItem.scrollIntoView({
+          block: 'center',
+          behavior: 'smooth',
+        });
+      }
+    }
+  }, [activeIndex, isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -108,6 +122,7 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
           {filteredGoals && filteredGoals.length > 0 ? (
             <ul className="space-y-2">
               <li
+                ref={(el) => { itemRefs.current[0] = el; }}
                 className={`flex cursor-pointer items-center justify-between rounded-xl p-3 transition-all duration-300
                   ${selectedGoalId === null ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}
                   ${activeIndex === 0 ? 'bg-gray-100 dark:bg-slate-700' : 'hover:bg-gray-50 dark:hover:bg-slate-700'}`}
@@ -127,6 +142,7 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
               {filteredGoals.map((goal, index) => (
                 <li
                   key={goal.id}
+                  ref={(el) => { itemRefs.current[index + 1] = el; }}
                   className={`flex cursor-pointer items-center justify-between rounded-xl p-3 transition-all duration-300
                     ${selectedGoalId === goal.id ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}
                     ${activeIndex === index + 1 ? 'bg-gray-100 dark:bg-slate-700' : 'hover:bg-gray-50 dark:hover:bg-slate-700'}`}
@@ -154,6 +170,7 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
           ) : (
             <div className="space-y-2">
                <li
+                ref={(el) => { itemRefs.current[0] = el; }}
                 className={`flex cursor-pointer items-center justify-between rounded-xl p-3 transition-all duration-300
                   ${selectedGoalId === null ? 'bg-indigo-50 dark:bg-indigo-900/50' : ''}
                   ${activeIndex === 0 ? 'bg-gray-100 dark:bg-slate-700' : 'hover:bg-gray-50 dark:hover:bg-slate-700'}`}
@@ -180,4 +197,3 @@ const GoalSelectionBottomSheet: React.FC<GoalSelectionBottomSheetProps> = ({
 };
 
 export default GoalSelectionBottomSheet;
-
