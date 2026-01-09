@@ -4,6 +4,7 @@ import Dexie, { type Table } from 'dexie';
 export interface Project {
   id: string;
   name: string;
+  order: number; // Added order field
 }
 
 export interface Goal {
@@ -73,6 +74,17 @@ export class AppDB extends Dexie {
     this.version(3).stores({
       tasks: 'id, projectId, goalId, title, completed, date, order, [date+projectId]',
       dailyEvaluations: 'id, projectId, date, [date+projectId]',
+    });
+
+    this.version(4).upgrade(async (tx) => {
+        let order = 0;
+        await tx.table('projects').toCollection().modify((project) => {
+            if (project && typeof project.order === 'undefined') {
+                project.order = order++;
+            }
+        });
+    }).stores({
+        projects: 'id, name, order'
     });
   }
 }

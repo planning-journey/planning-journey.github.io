@@ -33,7 +33,7 @@ function App() {
   const [todayScrollTrigger, setTodayScrollTrigger] = useState(0);
   const [showSidebar, setShowSidebar] = useState(false); // State for sidebar visibility
 
-  const projects = useLiveQuery(() => db.projects.toArray(), []) || [];
+  const projects = useLiveQuery(() => db.projects.orderBy('order').toArray(), []) || [];
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isAddProjectModalOpen, setIsAddProjectModalOpen] = useState(false);
   const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
@@ -126,7 +126,10 @@ function App() {
 
   // Project Management Handlers
   const handleAddProject = useCallback(async (name: string) => {
-    const newProject: Project = { id: uuidv4(), name };
+    const allProjects = await db.projects.toArray();
+    const maxOrder = allProjects.length > 0 ? Math.max(...allProjects.map(p => p.order || 0)) : -1;
+    
+    const newProject: Project = { id: uuidv4(), name, order: maxOrder + 1 };
     await db.projects.add(newProject);
     setSelectedProjectId(newProject.id); // Select the newly added project
     setShowSidebar(false); // Close sidebar after adding a project
@@ -137,6 +140,13 @@ function App() {
     await db.projects.update(id, { name: newName });
     showToast(`프로젝트가 '${newName}'으로 수정되었습니다.`);
   }, [showToast]);
+
+  const handleReorderProjects = useCallback(async (newOrderIds: string[]) => {
+    const updates = newOrderIds.map((id, index) => {
+      return db.projects.update(id, { order: index });
+    });
+    await Promise.all(updates);
+  }, []);
 
   const handleSelectProject = useCallback((id: string) => {
     setSelectedProjectId(id);
@@ -393,6 +403,7 @@ function App() {
             setProjectToDeleteId(projectId);
             setConfirmDeleteModalOpen(true);
           }}
+          onReorderProjects={handleReorderProjects}
           onSelectProject={handleSelectProject}
           selectedProjectId={selectedProjectId}
         />

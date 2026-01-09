@@ -1,7 +1,29 @@
-import React from 'react';
-import { X, Plus, Edit, Trash2, Sun, Moon, Monitor } from 'lucide-react'; // Import theme icons
-import { type Project } from '../../src/types/project'; // Import Project interface
-import { useTheme } from '../contexts/ThemeContext'; // Import useTheme hook
+import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { X, Plus, Edit, Trash2, Sun, Moon, Monitor, GripVertical } from 'lucide-react';
+import { type Project } from '../../src/types/project';
+import { useTheme } from '../contexts/ThemeContext';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  type DragStartEvent,
+  type DragEndEvent,
+  defaultDropAnimationSideEffects,
+  type DropAnimation
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -9,10 +31,98 @@ interface SidebarProps {
   projects: Project[];
   onAddProjectClick: () => void;
   onEditProjectClick: (project: Project) => void;
-  onDeleteProjectRequest: (projectId: string) => void; // New prop for delete request
+  onDeleteProjectRequest: (projectId: string) => void;
   onSelectProject: (projectId: string) => void;
+  onReorderProjects: (projectIds: string[]) => void;
   selectedProjectId: string | null;
 }
+
+interface SortableProjectItemProps {
+  project: Project;
+  isSelected: boolean;
+  onSelect: () => void;
+  onEdit: (e: React.MouseEvent) => void;
+  onDelete: (e: React.MouseEvent) => void;
+}
+
+const SortableProjectItem = ({ project, isSelected, onSelect, onEdit, onDelete }: SortableProjectItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: project.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.3 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center justify-between p-2 rounded-xl transition-colors duration-200 cursor-pointer group relative
+        ${isSelected
+          ? 'bg-indigo-100 dark:bg-indigo-700 text-indigo-800 dark:text-white'
+          : 'text-gray-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+        }`}
+      onClick={onSelect}
+    >
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+         <div 
+            {...attributes} 
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 flex-shrink-0"
+            onClick={(e) => e.stopPropagation()} 
+         >
+            <GripVertical className="w-4 h-4" />
+         </div>
+         <span className="truncate">{project.name}</span>
+      </div>
+      
+      <div className={`flex space-x-1 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(e);
+          }}
+          className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition-colors duration-200"
+        >
+          <Edit className="w-4 h-4 text-slate-500" />
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(e);
+          }}
+          className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition-colors duration-200"
+        >
+          <Trash2 className="w-4 h-4 text-slate-500" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Item for Drag Overlay (Presentational only)
+const ProjectItemOverlay = ({ project }: { project: Project }) => {
+    return (
+        <div
+          className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-800 shadow-xl border border-indigo-200 dark:border-indigo-700 cursor-grabbing w-full"
+        >
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+             <div className="text-indigo-500">
+                <GripVertical className="w-4 h-4" />
+             </div>
+             <span className="truncate font-medium text-gray-900 dark:text-white">{project.name}</span>
+          </div>
+        </div>
+    );
+};
 
 const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
@@ -20,11 +130,54 @@ const Sidebar: React.FC<SidebarProps> = ({
   projects,
   onAddProjectClick,
   onEditProjectClick,
-  onDeleteProjectRequest, // Changed prop name
+  onDeleteProjectRequest,
   onSelectProject,
+  onReorderProjects,
   selectedProjectId,
 }) => {
   const { theme, setTheme } = useTheme();
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = projects.findIndex((p) => p.id === active.id);
+      const newIndex = projects.findIndex((p) => p.id === over.id);
+
+      const newProjects = arrayMove(projects, oldIndex, newIndex);
+      onReorderProjects(newProjects.map(p => p.id));
+    }
+
+    setActiveId(null);
+  };
+  
+  const dropAnimation: DropAnimation = {
+      sideEffects: defaultDropAnimationSideEffects({
+        styles: {
+          active: {
+            opacity: '0.5',
+          },
+        },
+      }),
+  };
+
+  const activeProject = activeId ? projects.find(p => p.id === activeId) : null;
 
   return (
     <>
@@ -59,52 +212,53 @@ const Sidebar: React.FC<SidebarProps> = ({
             <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
+        
         <nav className="flex-1 p-4 pt-0 space-y-2 overflow-y-auto">
           <div className="mt-4">
             <button
               onClick={onAddProjectClick}
-              className="w-full text-left p-2 flex items-center justify-center text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-slate-700 hover:bg-indigo-100 dark:hover:bg-slate-600 rounded-xl transition-all duration-300 shadow-sm"
+              className="w-full text-left p-2 flex items-center justify-center text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-slate-700 hover:bg-indigo-100 dark:hover:bg-slate-600 rounded-xl transition-all duration-300 shadow-sm mb-4"
             >
               <Plus className="w-5 h-5 mr-2" />
               프로젝트 추가
             </button>
-            <div className="mt-2 space-y-2">
-              {projects.map((project) => (
-                <div
-                  key={project.id}
-                  className={`flex items-center justify-between p-2 rounded-xl transition-colors duration-200 cursor-pointer
-                    ${selectedProjectId === project.id
-                      ? 'bg-indigo-100 dark:bg-indigo-700 text-indigo-800 dark:text-white'
-                      : 'text-gray-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
-                    }`}
-                  onClick={() => onSelectProject(project.id)}
-                >
-                  <span>{project.name}</span>
-                  <div className="flex space-x-1">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent selecting project when clicking edit
-                        onEditProjectClick(project);
-                      }}
-                      className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition-colors duration-200"
-                    >
-                      <Edit className="w-4 h-4 text-slate-500" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent selecting project when clicking delete
-                        onDeleteProjectRequest(project.id); // Call new prop
-                      }}
-                      className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition-colors duration-200"
-                    >
-                      <Trash2 className="w-4 h-4 text-slate-500" />
-                    </button>
-                  </div>
+            
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext 
+                items={projects.map(p => p.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-1">
+                  {projects.map((project) => (
+                    <SortableProjectItem
+                      key={project.id}
+                      project={project}
+                      isSelected={selectedProjectId === project.id}
+                      onSelect={() => onSelectProject(project.id)}
+                      onEdit={() => onEditProjectClick(project)}
+                      onDelete={() => onDeleteProjectRequest(project.id)}
+                    />
+                  ))}
                 </div>
-              ))}
-            </div>
+              </SortableContext>
+              
+              {createPortal(
+                <DragOverlay dropAnimation={dropAnimation}>
+                  {activeProject ? (
+                    <ProjectItemOverlay project={activeProject} />
+                  ) : null}
+                </DragOverlay>,
+                document.body
+              )}
+            </DndContext>
           </div>
         </nav>
+
         {/* Theme selection buttons at the bottom */}
         <div className="p-4 border-t border-slate-200/50 dark:border-slate-700 flex justify-around gap-2">
           <button
