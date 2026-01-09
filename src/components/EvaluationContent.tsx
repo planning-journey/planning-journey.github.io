@@ -109,6 +109,12 @@ const EvaluationContent = React.forwardRef<EvaluationContentRef, EvaluationConte
               className="w-full p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white resize-none overflow-hidden focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300 text-sm"
               value={editedContent}
               onChange={handleTextareaChange}
+              onKeyDown={(e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                  e.preventDefault();
+                  saveContent();
+                }
+              }}
               placeholder="오늘의 일일 평가를 작성하세요..."
               rows={1}
             />
