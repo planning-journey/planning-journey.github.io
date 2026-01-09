@@ -195,13 +195,21 @@ function App() {
   const handleAddTask = useCallback(async (text: string) => {
     setCurrentTaskText(text); // Store the text for later use
 
-    if (!goals || goals.length === 0) { // Check if goals array is empty
+    // Filter active goals for the selected date and project
+    const activeGoals = (goals || []).filter(goal => {
+      if (goal.projectId !== selectedProjectId) return false;
+      if (goal.status === 'completed') return false;
+      return goal.startDate <= formattedSelectedDate && goal.endDate >= formattedSelectedDate;
+    });
+
+    if (activeGoals.length === 0) {
+      // No active goals, add task directly with no goal
       await addOrUpdateTask(text, undefined, formattedSelectedDate);
-      showToast('목표가 없습니다'); // Display toast message
+      showToast('목표가 없는 할 일이 등록되었습니다.');
     } else {
-      setIsBottomSheetOpen(true); // Open bottom sheet if goals exist
+      setIsBottomSheetOpen(true); // Open bottom sheet if active goals exist
     }
-  }, [goals, addOrUpdateTask, showToast, formattedSelectedDate]);
+  }, [goals, addOrUpdateTask, showToast, formattedSelectedDate, selectedProjectId]);
 
   const handleSelectGoal = useCallback((goalId: string | null) => {
     setSelectedGoalId(goalId);
