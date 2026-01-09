@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Plus, Edit, Trash2, Sun, Moon, Monitor, GripVertical } from 'lucide-react';
 import { type Project } from '../../src/types/project';
@@ -136,7 +136,14 @@ const Sidebar: React.FC<SidebarProps> = ({
   selectedProjectId,
 }) => {
   const { theme, setTheme } = useTheme();
+  // Local state for optimistic updates
+  const [items, setItems] = useState<Project[]>(projects);
   const [activeId, setActiveId] = useState<string | null>(null);
+
+  // Sync with props when external changes happen
+  useEffect(() => {
+    setItems(projects);
+  }, [projects]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -157,11 +164,15 @@ const Sidebar: React.FC<SidebarProps> = ({
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = projects.findIndex((p) => p.id === active.id);
-      const newIndex = projects.findIndex((p) => p.id === over.id);
+      const oldIndex = items.findIndex((p) => p.id === active.id);
+      const newIndex = items.findIndex((p) => p.id === over.id);
 
-      const newProjects = arrayMove(projects, oldIndex, newIndex);
-      onReorderProjects(newProjects.map(p => p.id));
+      // Optimistic update
+      const newItems = arrayMove(items, oldIndex, newIndex);
+      setItems(newItems);
+      
+      // Notify parent
+      onReorderProjects(newItems.map(p => p.id));
     }
 
     setActiveId(null);
@@ -177,7 +188,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       }),
   };
 
-  const activeProject = activeId ? projects.find(p => p.id === activeId) : null;
+  const activeProject = activeId ? items.find(p => p.id === activeId) : null;
 
   return (
     <>
@@ -230,11 +241,11 @@ const Sidebar: React.FC<SidebarProps> = ({
               onDragEnd={handleDragEnd}
             >
               <SortableContext 
-                items={projects.map(p => p.id)}
+                items={items.map(p => p.id)}
                 strategy={verticalListSortingStrategy}
               >
                 <div className="space-y-1">
-                  {projects.map((project) => (
+                  {items.map((project) => (
                     <SortableProjectItem
                       key={project.id}
                       project={project}
